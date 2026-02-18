@@ -73,7 +73,7 @@ export default function Footer() {
           </a>
         </div>
 
-        {/* Bottom - Copyright & Admin */}
+        {/* Bottom - Copyright & Admin 12*/}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="text-sm text-gray-400">
             © {currentYear} Prof. Vishal Gupta.<br className="sm:hidden" />
