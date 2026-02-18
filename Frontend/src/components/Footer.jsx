@@ -17,7 +17,7 @@ export default function Footer() {
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black shadow-lg">
                 <span className="text-3xl">😊</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-white leading-tight">
+              <h3 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight" style={{ color: '#ffffff' }}>
                 Prof. Vishal Gupta
               </h3>
             </div>
