@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { doc, getDoc, updateDoc, collection, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
-import { FiSave, FiPlus, FiTrash2, FiEdit, FiX, FiBookOpen, FiYoutube, FiFileText, FiDownload, FiStar } from 'react-icons/fi';
+import { FiSave, FiPlus, FiTrash2, FiEdit, FiX, FiBookOpen, FiYoutube, FiFileText, FiDownload, FiStar, FiImage, FiUpload } from 'react-icons/fi';
+import { uploadToCloudinary } from '../utils/cloudinaryUpload';
 
 // Initial data for bulk import
 const INITIAL_TESTIMONIALS = [
@@ -286,6 +287,7 @@ export default function AdminDashboard() {
         title: 'New Course',
         description: 'Course description...',
         youtubeUrl: 'https://www.youtube.com/embed/VIDEO_ID',
+        thumbnail: '', // Optional custom thumbnail
         duration: '8 weeks',
         level: 'Intermediate',
         published: false
@@ -1119,10 +1121,35 @@ export default function AdminDashboard() {
 function BlogEditor({ blog, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false);
   const [editedBlog, setEditedBlog] = useState(blog);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const handleSave = () => {
     onUpdate(editedBlog);
     setEditing(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setUploadProgress('Uploading image...');
+      
+      const imageUrl = await uploadToCloudinary(file);
+      
+      setEditedBlog({ ...editedBlog, imageUrl: imageUrl });
+      setUploadProgress('Image uploaded successfully! ✓');
+      
+      setTimeout(() => setUploadProgress(''), 3000);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadProgress('Upload failed: ' + error.message);
+      setTimeout(() => setUploadProgress(''), 5000);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -1151,21 +1178,75 @@ function BlogEditor({ blog, onUpdate, onDelete }) {
             placeholder="Full Content"
           />
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Image URL</label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+              <FiImage style={{ display: 'inline', marginRight: '0.5rem' }} />
+              Blog Image
+            </label>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+              <label
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: uploading ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  borderRadius: '4px',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <FiUpload />
+                {uploading ? 'Uploading...' : 'Upload Image'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              {uploadProgress && (
+                <span style={{ 
+                  padding: '0.5rem', 
+                  color: uploadProgress.includes('failed') ? '#ef4444' : '#10b981',
+                  fontSize: '0.9rem'
+                }}>
+                  {uploadProgress}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={editedBlog.imageUrl || ''}
               onChange={(e) => setEditedBlog({ ...editedBlog, imageUrl: e.target.value })}
-              style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-              placeholder="https://example.com/blog-image.jpg"
+              style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px', marginTop: '0.5rem' }}
+              placeholder="Or paste image URL"
             />
             {editedBlog.imageUrl && (
-              <img 
-                src={editedBlog.imageUrl} 
-                alt="Blog preview"
-                style={{ marginTop: '0.5rem', maxWidth: '200px', height: 'auto', borderRadius: '4px' }}
-                onError={(e) => e.target.style.display = 'none'}
-              />
+              <div style={{ marginTop: '1rem' }}>
+                <img 
+                  src={editedBlog.imageUrl} 
+                  alt="Blog preview"
+                  style={{ maxWidth: '300px', height: 'auto', borderRadius: '8px', border: '2px solid #e5e5e5' }}
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+                <button
+                  onClick={() => setEditedBlog({ ...editedBlog, imageUrl: '' })}
+                  style={{ 
+                    marginTop: '0.5rem',
+                    padding: '0.25rem 0.5rem',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    display: 'block'
+                  }}
+                >
+                  Remove Image
+                </button>
+              </div>
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -1236,10 +1317,35 @@ function BlogEditor({ blog, onUpdate, onDelete }) {
 function CourseEditor({ course, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false);
   const [editedCourse, setEditedCourse] = useState(course);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const handleSave = () => {
     onUpdate(editedCourse);
     setEditing(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setUploadProgress('Uploading image...');
+      
+      const imageUrl = await uploadToCloudinary(file);
+      
+      setEditedCourse({ ...editedCourse, thumbnail: imageUrl });
+      setUploadProgress('Image uploaded successfully! ✓');
+      
+      setTimeout(() => setUploadProgress(''), 3000);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadProgress('Upload failed: ' + error.message);
+      setTimeout(() => setUploadProgress(''), 5000);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const extractVideoId = (url) => {
@@ -1277,6 +1383,81 @@ function CourseEditor({ course, onUpdate, onDelete }) {
               placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://www.youtube.com/embed/VIDEO_ID"
             />
           </div>
+          
+          {/* Image Upload Field */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+              <FiImage style={{ display: 'inline', marginRight: '0.5rem' }} />
+              Course Thumbnail Image (Optional)
+            </label>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <label
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: uploading ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  borderRadius: '4px',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <FiUpload />
+                {uploading ? 'Uploading...' : 'Choose Image'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              {uploadProgress && (
+                <span style={{ 
+                  padding: '0.5rem', 
+                  color: uploadProgress.includes('failed') ? '#ef4444' : '#10b981',
+                  fontSize: '0.9rem'
+                }}>
+                  {uploadProgress}
+                </span>
+              )}
+            </div>
+            {editedCourse.thumbnail && (
+              <div style={{ marginTop: '1rem' }}>
+                <img
+                  src={editedCourse.thumbnail}
+                  alt="Course thumbnail preview"
+                  style={{ 
+                    maxWidth: '300px', 
+                    maxHeight: '200px', 
+                    borderRadius: '8px',
+                    border: '2px solid #e5e5e5',
+                    objectFit: 'cover'
+                  }}
+                />
+                <button
+                  onClick={() => setEditedCourse({ ...editedCourse, thumbnail: '' })}
+                  style={{ 
+                    marginTop: '0.5rem',
+                    padding: '0.25rem 0.5rem',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  Remove Image
+                </button>
+              </div>
+            )}
+            <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.5rem' }}>
+              Recommended: 1280x720px, max 5MB. If not provided, YouTube thumbnail will be used.
+            </p>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <input
               type="text"
@@ -1378,10 +1559,35 @@ function CourseEditor({ course, onUpdate, onDelete }) {
 function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false);
   const [editedTestimonial, setEditedTestimonial] = useState(testimonial);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const handleSave = () => {
     onUpdate(editedTestimonial);
     setEditing(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setUploadProgress('Uploading photo...');
+      
+      const imageUrl = await uploadToCloudinary(file);
+      
+      setEditedTestimonial({ ...editedTestimonial, photoUrl: imageUrl });
+      setUploadProgress('Photo uploaded successfully! ✓');
+      
+      setTimeout(() => setUploadProgress(''), 3000);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadProgress('Upload failed: ' + error.message);
+      setTimeout(() => setUploadProgress(''), 5000);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -1416,6 +1622,71 @@ function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
             style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
             placeholder="Organization (optional)"
           />
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+              <FiImage style={{ display: 'inline', marginRight: '0.5rem' }} />
+              Author Photo (Optional)
+            </label>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+              <label
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: uploading ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  borderRadius: '4px',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <FiUpload />
+                {uploading ? 'Uploading...' : 'Upload Photo'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              {uploadProgress && (
+                <span style={{ 
+                  padding: '0.5rem', 
+                  color: uploadProgress.includes('failed') ? '#ef4444' : '#10b981',
+                  fontSize: '0.9rem'
+                }}>
+                  {uploadProgress}
+                </span>
+              )}
+            </div>
+            {editedTestimonial.photoUrl && (
+              <div style={{ marginTop: '1rem' }}>
+                <img 
+                  src={editedTestimonial.photoUrl} 
+                  alt="Author photo"
+                  style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #e5e5e5' }}
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+                <button
+                  onClick={() => setEditedTestimonial({ ...editedTestimonial, photoUrl: '' })}
+                  style={{ 
+                    marginTop: '0.5rem',
+                    padding: '0.25rem 0.5rem',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    display: 'block'
+                  }}
+                >
+                  Remove Photo
+                </button>
+              </div>
+            )}
+          </div>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Display Order</label>
             <input
@@ -1501,10 +1772,35 @@ function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
 function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false);
   const [editedLogo, setEditedLogo] = useState(logo);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const handleSave = () => {
     onUpdate(editedLogo);
     setEditing(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setUploadProgress('Uploading logo...');
+      
+      const imageUrl = await uploadToCloudinary(file);
+      
+      setEditedLogo({ ...editedLogo, logoUrl: imageUrl });
+      setUploadProgress('Logo uploaded successfully! ✓');
+      
+      setTimeout(() => setUploadProgress(''), 3000);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadProgress('Upload failed: ' + error.message);
+      setTimeout(() => setUploadProgress(''), 5000);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -1520,27 +1816,78 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
           />
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-              Logo URL (e.g., /Ambuja_Cements.svg.png)
+              <FiImage style={{ display: 'inline', marginRight: '0.5rem' }} />
+              Company Logo
             </label>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+              <label
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: uploading ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  borderRadius: '4px',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <FiUpload />
+                {uploading ? 'Uploading...' : 'Upload Logo'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              {uploadProgress && (
+                <span style={{ 
+                  padding: '0.5rem', 
+                  color: uploadProgress.includes('failed') ? '#ef4444' : '#10b981',
+                  fontSize: '0.9rem'
+                }}>
+                  {uploadProgress}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={editedLogo.logoUrl}
               onChange={(e) => setEditedLogo({ ...editedLogo, logoUrl: e.target.value })}
-              style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-              placeholder="/logo-filename.png"
+              style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px', marginTop: '0.5rem' }}
+              placeholder="Or paste logo URL"
             />
             {editedLogo.logoUrl && (
-              <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'center' }}>
-                <img 
-                  src={editedLogo.logoUrl} 
-                  alt={editedLogo.name}
-                  style={{ maxWidth: '200px', maxHeight: '100px', objectFit: 'contain' }}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
+              <div style={{ marginTop: '1rem' }}>
+                <div style={{ padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'center', minHeight: '120px', alignItems: 'center' }}>
+                  <img 
+                    src={editedLogo.logoUrl} 
+                    alt={editedLogo.name}
+                    style={{ maxWidth: '250px', maxHeight: '100px', objectFit: 'contain' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <p style={{ display: 'none', color: '#ef4444', fontSize: '0.85rem' }}>Logo failed to load. Check the URL.</p>
+                </div>
+                <button
+                  onClick={() => setEditedLogo({ ...editedLogo, logoUrl: '' })}
+                  style={{ 
+                    marginTop: '0.5rem',
+                    padding: '0.25rem 0.5rem',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem'
                   }}
-                />
-                <p style={{ display: 'none', color: '#ef4444', fontSize: '0.85rem' }}>Logo failed to load. Check the path.</p>
+                >
+                  Remove Logo
+                </button>
               </div>
             )}
           </div>

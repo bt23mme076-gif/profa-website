@@ -293,6 +293,10 @@ export default function Home() {
             {courses && courses.length > 0 ? (
               courses.slice(0, 2).map((course, index) => {
                 const videoId = course.youtubeUrl ? extractVideoId(course.youtubeUrl) : null;
+                // Use custom thumbnail if available, otherwise YouTube thumbnail
+                const thumbnailUrl = course.thumbnail || 
+                  (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null);
+                
                 return (
                 <motion.div 
                   key={course.id}
@@ -306,21 +310,24 @@ export default function Home() {
                   <p className="text-base font-['Inter'] text-gray-700 mb-6 leading-relaxed">
                     {course.description}
                   </p>
-                  {videoId && (
+                  {thumbnailUrl && (
                     <div className="w-full mb-6">
                       <a 
-                        href={`https://www.youtube.com/watch?v=${videoId}`} 
+                        href={course.youtubeUrl || '#'} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="block relative group"
                       >
                         <div className="aspect-video w-full bg-gray-200 rounded-lg overflow-hidden shadow-md">
                           <img 
-                            src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+                            src={thumbnailUrl}
                             alt={course.title}
                             className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
                             onError={(e) => {
-                              e.target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                              // Fallback to lower quality if custom thumbnail fails
+                              if (videoId && !course.thumbnail) {
+                                e.target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                              }
                             }}
                           />
                           <div className="absolute inset-0 flex items-center justify-center">

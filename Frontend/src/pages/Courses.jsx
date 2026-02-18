@@ -167,6 +167,10 @@ export default function Courses() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {courses.map((course, index) => {
                 const videoId = course.youtubeUrl ? extractVideoId(course.youtubeUrl) : null;
+                // Use custom thumbnail if available, otherwise YouTube thumbnail
+                const thumbnailUrl = course.thumbnail || 
+                  (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null);
+                
                 return (
                   <motion.div
                     key={course.id}
@@ -183,21 +187,26 @@ export default function Courses() {
                       {course.description}
                     </p>
                     
-                    {videoId && (
+                    {thumbnailUrl && (
                       <div className="mb-4">
                         <a 
-                          href={`https://www.youtube.com/watch?v=${videoId}`} 
+                          href={course.youtubeUrl || '#'} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="block relative group"
                         >
                           <div className="aspect-video w-full bg-gray-200 rounded-lg overflow-hidden shadow-md">
                             <img 
-                              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+                              src={thumbnailUrl}
                               alt={course.title}
                               className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
                               onError={(e) => {
-                                e.target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                                // Fallback to lower quality YouTube thumbnail
+                                if (videoId && !course.thumbnail) {
+                                  e.target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                                } else {
+                                  e.target.src = 'https://via.placeholder.com/640x360/1a1a1a/ffffff?text=Course+Image';
+                                }
                               }}
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
