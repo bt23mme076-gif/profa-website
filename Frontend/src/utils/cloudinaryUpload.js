@@ -8,9 +8,10 @@ const UPLOAD_PRESET = 'iima_courses'; // You need to create this in Cloudinary d
 /**
  * Upload image to Cloudinary
  * @param {File} file - Image file to upload
+ * @param {string} type - Type of content (e.g., 'courses', 'blogs', 'testimonials', 'logos', 'home')
  * @returns {Promise<string>} - URL of uploaded image
  */
-export const uploadToCloudinary = async (file) => {
+export const uploadToCloudinary = async (file, type = 'general') => {
   // Validate file type
   if (!file.type.startsWith('image/')) {
     throw new Error('Only image files are allowed');
@@ -22,10 +23,22 @@ export const uploadToCloudinary = async (file) => {
     throw new Error('Image size should be less than 5MB');
   }
 
+  // Map type to subfolder
+  const folderMap = {
+    courses: 'iima-courses/courses',
+    blogs: 'iima-courses/blogs',
+    testimonials: 'iima-courses/testimonials',
+    logos: 'iima-courses/logos',
+    home: 'iima-courses/home',
+    general: 'iima-courses'
+  };
+
+  const folder = folderMap[type] || 'iima-courses';
+
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', UPLOAD_PRESET);
-  formData.append('folder', 'iima-courses');
+  formData.append('folder', folder);
   formData.append('api_key', '898784168144989');
 
   try {

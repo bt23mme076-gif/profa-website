@@ -144,6 +144,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  
+  // Home content image upload states
+  const [homeImageUploading, setHomeImageUploading] = useState({});
+  const [homeImageProgress, setHomeImageProgress] = useState({});
 
   // Redirect if not admin
   useEffect(() => {
@@ -231,6 +235,29 @@ export default function AdminDashboard() {
       setMessage({ text: 'Error saving content', type: 'error' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Upload image for home content
+  const handleHomeImageUpload = async (file, fieldName) => {
+    if (!file) return;
+    
+    try {
+      setHomeImageUploading({ ...homeImageUploading, [fieldName]: true });
+      setHomeImageProgress({ ...homeImageProgress, [fieldName]: 'Uploading...' });
+      
+      const imageUrl = await uploadToCloudinary(file, 'home');
+      
+      setHomeContent({ ...homeContent, [fieldName]: imageUrl });
+      setHomeImageProgress({ ...homeImageProgress, [fieldName]: 'Upload successful!' });
+      setTimeout(() => {
+        setHomeImageProgress({ ...homeImageProgress, [fieldName]: '' });
+      }, 2000);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setHomeImageProgress({ ...homeImageProgress, [fieldName]: 'Upload failed. Please try again.' });
+    } finally {
+      setHomeImageUploading({ ...homeImageUploading, [fieldName]: false });
     }
   };
 
@@ -376,13 +403,13 @@ export default function AdminDashboard() {
     try {
       const newLogo = {
         name: 'Company Name',
-        logoUrl: '/Ambuja_Cements.svg.png',
+        logoUrl: '', // Empty - admin will upload their own logo
         order: trainingLogos.length,
-        published: true
+        published: false // Default to unpublished until logo is added
       };
       const docRef = await addDoc(collection(db, 'training_partners'), newLogo);
       setTrainingLogos([...trainingLogos, { id: docRef.id, ...newLogo }]);
-      setMessage({ text: 'Training partner added!', type: 'success' });
+      setMessage({ text: 'Training partner added! Please upload logo and update name.', type: 'success' });
     } catch (error) {
       console.error('Error adding training partner:', error);
       setMessage({ text: 'Error adding training partner', type: 'error' });
@@ -629,12 +656,48 @@ export default function AdminDashboard() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Hero Image URL</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                      <FiImage style={{ display: 'inline', marginRight: '0.5rem' }} />
+                      Hero Image
+                    </label>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                      <label
+                        style={{
+                          padding: '0.5rem 1rem',
+                          backgroundColor: homeImageUploading.hero_image ? '#9ca3af' : '#3b82f6',
+                          color: 'white',
+                          borderRadius: '4px',
+                          cursor: homeImageUploading.hero_image ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        <FiUpload />
+                        {homeImageUploading.hero_image ? 'Uploading...' : 'Upload Image'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => e.target.files[0] && handleHomeImageUpload(e.target.files[0], 'hero_image')}
+                          disabled={homeImageUploading.hero_image}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                      {homeImageProgress.hero_image && (
+                        <span style={{ 
+                          padding: '0.5rem', 
+                          color: homeImageProgress.hero_image.includes('failed') ? '#ef4444' : '#10b981',
+                          fontSize: '0.9rem'
+                        }}>
+                          {homeImageProgress.hero_image}
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={homeContent.hero_image || ''}
                       onChange={(e) => setHomeContent({ ...homeContent, hero_image: e.target.value })}
-                      placeholder="https://example.com/image.jpg"
+                      placeholder="Or paste image URL"
                       style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
                     />
                     {homeContent.hero_image && (
@@ -679,13 +742,48 @@ export default function AdminDashboard() {
                         onChange={(e) => setHomeContent({ ...homeContent, [`blog${num}_excerpt`]: e.target.value })}
                         style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
                       />
-                      <input
-                        type="text"
-                        placeholder="Image URL"
-                        value={homeContent[`blog${num}_image`] || ''}
-                        onChange={(e) => setHomeContent({ ...homeContent, [`blog${num}_image`]: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-                      />
+                      <div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <label
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              backgroundColor: homeImageUploading[`blog${num}_image`] ? '#9ca3af' : '#3b82f6',
+                              color: 'white',
+                              borderRadius: '4px',
+                              cursor: homeImageUploading[`blog${num}_image`] ? 'not-allowed' : 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            <FiUpload size={14} />
+                            {homeImageUploading[`blog${num}_image`] ? 'Uploading...' : 'Upload'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => e.target.files[0] && handleHomeImageUpload(e.target.files[0], `blog${num}_image`)}
+                              disabled={homeImageUploading[`blog${num}_image`]}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                          {homeImageProgress[`blog${num}_image`] && (
+                            <span style={{ 
+                              color: homeImageProgress[`blog${num}_image`].includes('failed') ? '#ef4444' : '#10b981',
+                              fontSize: '0.8rem'
+                            }}>
+                              {homeImageProgress[`blog${num}_image`]}
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Or paste image URL"
+                          value={homeContent[`blog${num}_image`] || ''}
+                          onChange={(e) => setHomeContent({ ...homeContent, [`blog${num}_image`]: e.target.value })}
+                          style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                        />
+                      </div>
                       {homeContent[`blog${num}_image`] && (
                         <img 
                           src={homeContent[`blog${num}_image`]} 
@@ -1068,27 +1166,6 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem', color: '#1e40af' }}>Available Logos in /public folder:</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem', color: '#1e40af' }}>
-                <div>/Ambuja_Cements.svg.png</div>
-                <div>/bpcl.jpg</div>
-                <div>/Defence_Research_and_Development_Organisation.svg.png</div>
-                <div>/Hindalco_Logo.svg.png</div>
-                <div>/Hindustan_Petroleum_Logo.svg</div>
-                <div>/Honeywell_logo.svg.png</div>
-                <div>/ias.jpg</div>
-                <div>/Indian_police_service_logo.jpeg</div>
-                <div>/Indian_Revenue_Service_Logo.png</div>
-                <div>/Indian_Space_Research_Organisation_Logo.svg.png</div>
-                <div>/JLL_logo.svg.png</div>
-                <div>/Larsen&Toubro_logo.svg.png</div>
-                <div>/NHPC_official_logo.svg.png</div>
-                <div>/Novartis-Logo.svg.png</div>
-                <div>/primarc.png</div>
-              </div>
-            </div>
-
             {trainingLogos.length === 0 && (
               <div style={{ padding: '2rem', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', marginBottom: '1.5rem', textAlign: 'center' }}>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#166534', marginBottom: '0.5rem' }}>
@@ -1137,7 +1214,7 @@ function BlogEditor({ blog, onUpdate, onDelete }) {
       setUploading(true);
       setUploadProgress('Uploading image...');
       
-      const imageUrl = await uploadToCloudinary(file);
+      const imageUrl = await uploadToCloudinary(file, 'blogs');
       
       setEditedBlog({ ...editedBlog, imageUrl: imageUrl });
       setUploadProgress('Image uploaded successfully! ✓');
@@ -1333,7 +1410,7 @@ function CourseEditor({ course, onUpdate, onDelete }) {
       setUploading(true);
       setUploadProgress('Uploading image...');
       
-      const imageUrl = await uploadToCloudinary(file);
+      const imageUrl = await uploadToCloudinary(file, 'courses');
       
       setEditedCourse({ ...editedCourse, thumbnail: imageUrl });
       setUploadProgress('Image uploaded successfully! ✓');
@@ -1575,7 +1652,7 @@ function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
       setUploading(true);
       setUploadProgress('Uploading photo...');
       
-      const imageUrl = await uploadToCloudinary(file);
+      const imageUrl = await uploadToCloudinary(file, 'testimonials');
       
       setEditedTestimonial({ ...editedTestimonial, photoUrl: imageUrl });
       setUploadProgress('Photo uploaded successfully! ✓');
@@ -1788,7 +1865,7 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
       setUploading(true);
       setUploadProgress('Uploading logo...');
       
-      const imageUrl = await uploadToCloudinary(file);
+      const imageUrl = await uploadToCloudinary(file, 'logos');
       
       setEditedLogo({ ...editedLogo, logoUrl: imageUrl });
       setUploadProgress('Logo uploaded successfully! ✓');
@@ -1859,7 +1936,7 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
               style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px', marginTop: '0.5rem' }}
               placeholder="Or paste logo URL"
             />
-            {editedLogo.logoUrl && (
+            {editedLogo.logoUrl ? (
               <div style={{ marginTop: '1rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'center', minHeight: '120px', alignItems: 'center' }}>
                   <img 
@@ -1888,6 +1965,23 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
                 >
                   Remove Logo
                 </button>
+              </div>
+            ) : (
+              <div style={{ 
+                marginTop: '1rem', 
+                padding: '2rem', 
+                backgroundColor: '#f9fafb', 
+                borderRadius: '8px', 
+                border: '2px dashed #d1d5db',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}>
+                <FiImage size={40} color="#9ca3af" />
+                <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>No logo uploaded yet</p>
+                <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: 0 }}>Upload an image or paste a URL above</p>
               </div>
             )}
           </div>
