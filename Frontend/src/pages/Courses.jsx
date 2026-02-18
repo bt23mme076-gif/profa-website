@@ -5,9 +5,9 @@ import { where } from 'firebase/firestore';
 
 export default function Courses() {
   const fadeIn = {
-    initial: { opacity: 0, y: 20 },
+    initial: { opacity: 0.85, y: 8 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
+    transition: { duration: 0.35 }
   };
 
   // Fetch published courses from Firestore
@@ -95,9 +95,9 @@ export default function Courses() {
       <section className="pt-32 pb-16 px-6 lg:px-16 bg-gradient-to-b from-[#fafaf8] to-white">
         <div className="max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0.85, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.35 }}
             className="text-center mb-12"
           >
             <div className="inline-block px-4 py-2 bg-[#ffcc00] bg-opacity-20 rounded-full mb-6">
@@ -174,9 +174,9 @@ export default function Courses() {
                 return (
                   <motion.div
                     key={course.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0.85, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    transition={{ duration: 0.35, delay: index * 0.06 }}
                     whileHover={{ y: -4 }}
                     className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-100"
                   >

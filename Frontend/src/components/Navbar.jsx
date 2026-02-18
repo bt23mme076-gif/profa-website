@@ -350,7 +350,8 @@ export default function Navbar() {
                 right: 0,
                 bottom: 0,
                 backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                zIndex: 39
+                zIndex: 39,
+                animation: 'fadeIn 0.2s ease-out'
               }}
             />
             
@@ -370,7 +371,7 @@ export default function Navbar() {
               overflowY: 'auto',
               overflowX: 'hidden',
               WebkitOverflowScrolling: 'touch',
-              animation: 'slideDown 0.3s ease-out',
+              animation: 'slideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)',
               zIndex: 40,
               display: 'flex',
               flexDirection: 'column',
@@ -562,16 +563,24 @@ export default function Navbar() {
       {/* Spacer for fixed navbar */}
       <div style={{ height: windowWidth < 768 ? '65px' : '80px' }} />
       
-      {/* Add slideDown animation */}
+      {/* Add animations */}
       <style>{`
         @keyframes slideDown {
           from {
-            opacity: 0;
-            transform: translateY(-10px);
+            opacity: 0.85;
+            transform: translateY(-5px);
           }
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
           }
         }
       `}</style>

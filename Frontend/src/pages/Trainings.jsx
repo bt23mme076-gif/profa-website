@@ -65,9 +65,9 @@ export default function Trainings() {
       <section className="py-20 bg-gradient-to-br from-[#fff7ed] to-white border-b-4 border-[#f97316]">
         <div className="max-w-7xl mx-auto px-6 lg:px-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0.85, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.35 }}
             className="text-center"
           >
             <h1 className="text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-gray-900 mb-6">
@@ -90,9 +90,9 @@ export default function Trainings() {
             {programs.map((program, index) => (
               <motion.div
                 key={program.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0.85, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
+                transition={{ duration: 0.35, delay: index * 0.08 }}
                 className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-gray-100 hover:shadow-2xl transition-shadow duration-300"
               >
                 {/* Program Header */}

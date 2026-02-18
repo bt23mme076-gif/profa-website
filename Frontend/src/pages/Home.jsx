@@ -16,27 +16,27 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   
-  // Animation variants - Fade In and Up effect
+  // Animation variants - Subtle fade effect (like drlauriesantos.com)
   const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0.85, y: 8 },
     visible: { 
       opacity: 1, 
       y: 0,
       transition: {
-        duration: 0.8,
-        ease: [0.215, 0.61, 0.355, 1.0]
+        duration: 0.35,
+        ease: [0.25, 0.1, 0.25, 1.0]
       }
     }
   };
 
   // Stagger container for multiple items
   const staggerContainer = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0.85 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1
+        staggerChildren: 0.06,
+        delayChildren: 0.05
       }
     }
   };
@@ -44,8 +44,8 @@ export default function Home() {
   // Viewport options for scroll-triggered animations
   const viewportOptions = {
     once: true,
-    margin: "0px 0px -100px 0px",
-    amount: 0.3
+    margin: "0px 0px -50px 0px",
+    amount: 0.2
   };
   
   // Helper function to extract YouTube video ID from various URL formats
