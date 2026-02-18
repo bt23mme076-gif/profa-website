@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1a1a1a;
+  line-height: 1.65;
+  background-color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', 'Georgia', serif;
+}
+
+.font-inter {
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Custom scrollbar - Safal Niveshak style (subtle and minimal) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
+
+/* Scrolling Animations - Right to Left */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-left-slow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-90.33%);
+  }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 80s linear infinite;
+  display: flex;
+  gap: 2rem;
+}
+
+.animate-scroll-left-slow {
+  animation: scroll-left-slow 40s linear infinite;
+  display: flex;
+  gap: 2rem;
+}
+
+.animate-scroll-left:hover,
+.animate-scroll-left-slow:hover {
+  animation-play-state: paused;
+}
