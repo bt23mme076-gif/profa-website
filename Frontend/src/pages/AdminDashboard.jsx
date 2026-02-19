@@ -386,10 +386,12 @@ export default function AdminDashboard() {
     try {
       await updateDoc(doc(db, 'blogs', blogId), updatedData);
       setBlogs(blogs.map(blog => blog.id === blogId ? { ...blog, ...updatedData } : blog));
-      setMessage({ text: 'Blog updated!', type: 'success' });
+      setMessage({ text: 'Blog updated successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error updating blog:', error);
       setMessage({ text: 'Error updating blog', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -399,10 +401,12 @@ export default function AdminDashboard() {
     try {
       await deleteDoc(doc(db, 'blogs', blogId));
       setBlogs(blogs.filter(blog => blog.id !== blogId));
-      setMessage({ text: 'Blog deleted!', type: 'success' });
+      setMessage({ text: 'Blog deleted successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error deleting blog:', error);
       setMessage({ text: 'Error deleting blog', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -432,10 +436,12 @@ export default function AdminDashboard() {
     try {
       await updateDoc(doc(db, 'courses', courseId), updatedData);
       setCourses(courses.map(course => course.id === courseId ? { ...course, ...updatedData } : course));
-      setMessage({ text: 'Course updated!', type: 'success' });
+      setMessage({ text: 'Course updated successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error updating course:', error);
       setMessage({ text: 'Error updating course', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -445,10 +451,12 @@ export default function AdminDashboard() {
     try {
       await deleteDoc(doc(db, 'courses', courseId));
       setCourses(courses.filter(course => course.id !== courseId));
-      setMessage({ text: 'Course deleted!', type: 'success' });
+      setMessage({ text: 'Course deleted successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error deleting course:', error);
       setMessage({ text: 'Error deleting course', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -477,10 +485,12 @@ export default function AdminDashboard() {
     try {
       await updateDoc(doc(db, 'testimonials', testimonialId), updatedData);
       setTestimonials(testimonials.map(t => t.id === testimonialId ? { ...t, ...updatedData } : t));
-      setMessage({ text: 'Testimonial updated!', type: 'success' });
+      setMessage({ text: 'Testimonial updated successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error updating testimonial:', error);
       setMessage({ text: 'Error updating testimonial', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -490,10 +500,12 @@ export default function AdminDashboard() {
     try {
       await deleteDoc(doc(db, 'testimonials', testimonialId));
       setTestimonials(testimonials.filter(t => t.id !== testimonialId));
-      setMessage({ text: 'Testimonial deleted!', type: 'success' });
+      setMessage({ text: 'Testimonial deleted successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error deleting testimonial:', error);
       setMessage({ text: 'Error deleting testimonial', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -520,10 +532,12 @@ export default function AdminDashboard() {
     try {
       await updateDoc(doc(db, 'training_partners', logoId), updatedData);
       setTrainingLogos(trainingLogos.map(logo => logo.id === logoId ? { ...logo, ...updatedData } : logo));
-      setMessage({ text: 'Training partner updated!', type: 'success' });
+      setMessage({ text: 'Training partner updated successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error updating training partner:', error);
       setMessage({ text: 'Error updating training partner', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -533,10 +547,12 @@ export default function AdminDashboard() {
     try {
       await deleteDoc(doc(db, 'training_partners', logoId));
       setTrainingLogos(trainingLogos.filter(logo => logo.id !== logoId));
-      setMessage({ text: 'Training partner deleted!', type: 'success' });
+      setMessage({ text: 'Training partner deleted successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Error deleting training partner:', error);
       setMessage({ text: 'Error deleting training partner', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -1308,6 +1324,11 @@ function BlogEditor({ blog, onUpdate, onDelete }) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
 
+  // Sync local state with prop changes
+  useEffect(() => {
+    setEditedBlog(blog);
+  }, [blog]);
+
   const handleSave = () => {
     onUpdate(editedBlog);
     setEditing(false);
@@ -1503,6 +1524,11 @@ function CourseEditor({ course, onUpdate, onDelete }) {
   const [editedCourse, setEditedCourse] = useState(course);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+
+  // Sync local state with prop changes
+  useEffect(() => {
+    setEditedCourse(course);
+  }, [course]);
 
   const handleSave = () => {
     onUpdate(editedCourse);
@@ -1746,6 +1772,11 @@ function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
 
+  // Sync local state with prop changes
+  useEffect(() => {
+    setEditedTestimonial(testimonial);
+  }, [testimonial]);
+
   const handleSave = () => {
     onUpdate(editedTestimonial);
     setEditing(false);
@@ -1958,6 +1989,11 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
   const [editedLogo, setEditedLogo] = useState(logo);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+
+  // Sync local state with prop changes
+  useEffect(() => {
+    setEditedLogo(logo);
+  }, [logo]);
 
   const handleSave = () => {
     onUpdate(editedLogo);
