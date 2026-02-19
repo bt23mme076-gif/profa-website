@@ -6,6 +6,105 @@ import { doc, getDoc, updateDoc, collection, addDoc, deleteDoc, getDocs } from '
 import { FiSave, FiPlus, FiTrash2, FiEdit, FiX, FiBookOpen, FiYoutube, FiFileText, FiDownload, FiStar, FiImage, FiUpload } from 'react-icons/fi';
 import { uploadToCloudinary } from '../utils/cloudinaryUpload';
 
+// Add mobile responsive styles
+const mobileStyles = `
+  @media (max-width: 768px) {
+    .admin-tabs {
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    
+    .admin-tab {
+      flex-shrink: 0 !important;
+      padding: 0.75rem 1rem !important;
+      font-size: 0.875rem !important;
+    }
+    
+    .admin-header {
+      padding: 1.5rem 0 !important;
+    }
+    
+    .admin-header h1 {
+      font-size: 1.5rem !important;
+    }
+    
+    .admin-header-content, .admin-content-wrapper {
+      padding: 0 1rem !important;
+    }
+    
+    .admin-button-group {
+      flex-direction: column !important;
+      width: 100% !important;
+    }
+    
+    .admin-button-group button {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+    
+    .admin-card {
+      padding: 1rem !important;
+    }
+    
+    .admin-form-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+    
+    .admin-form-row > div:first-child {
+      width: 100% !important;
+    }
+    
+    .logo-preview-container {
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+      height: 120px !important;
+      margin-bottom: 1rem !important;
+    }
+    
+    .logo-card-content {
+      width: 100% !important;
+    }
+    
+    .logo-url-text {
+      display: none !important;
+    }
+    
+    .logo-info-wrapper {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.75rem !important;
+    }
+    
+    .admin-editor-actions {
+      flex-direction: column !important;
+      gap: 0.5rem !important;
+    }
+    
+    .admin-editor-actions button {
+      width: 100% !important;
+    }
+    
+    .admin-content-section {
+      padding: 1rem !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .admin-header h1 {
+      font-size: 1.25rem !important;
+    }
+    
+    .admin-tab {
+      font-size: 0.8rem !important;
+      padding: 0.6rem 0.8rem !important;
+    }
+  }
+`;
+
 // Initial data for bulk import
 const INITIAL_TESTIMONIALS = [
   {
@@ -503,14 +602,16 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5', paddingTop: '72px' }}>
-      {/* Header */}
-      <div style={{ backgroundColor: '#1a1a1a', color: 'white', padding: '2rem 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Admin Dashboard</h1>
-          <p style={{ color: '#999' }}>Welcome, {currentUser?.email}</p>
+    <>
+      <style>{mobileStyles}</style>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5', paddingTop: '72px' }}>
+        {/* Header */}
+        <div className="admin-header" style={{ backgroundColor: '#1a1a1a', color: 'white', padding: '2rem 0' }}>
+          <div className="admin-header-content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Admin Dashboard</h1>
+            <p style={{ color: '#999' }}>Welcome, {currentUser?.email}</p>
+          </div>
         </div>
-      </div>
 
       {/* Message Banner */}
       {message.text && (
@@ -524,10 +625,11 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+      <div className="admin-content-wrapper" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid #e5e5e5' }}>
+        <div className="admin-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid #e5e5e5' }}>
           <button
+            className="admin-tab"
             onClick={() => setActiveTab('home')}
             style={{
               padding: '1rem 2rem',
@@ -541,9 +643,10 @@ export default function AdminDashboard() {
               gap: '0.5rem'
             }}
           >
-            <FiFileText /> Home Content
+            <FiFileText /> <span>Home Content</span>
           </button>
           <button
+            className="admin-tab"
             onClick={() => setActiveTab('blogs')}
             style={{
               padding: '1rem 2rem',
@@ -557,9 +660,10 @@ export default function AdminDashboard() {
               gap: '0.5rem'
             }}
           >
-            <FiBookOpen /> Blogs
+            <FiBookOpen /> <span>Blogs</span>
           </button>
           <button
+            className="admin-tab"
             onClick={() => setActiveTab('courses')}
             style={{
               padding: '1rem 2rem',
@@ -573,9 +677,10 @@ export default function AdminDashboard() {
               gap: '0.5rem'
             }}
           >
-            <FiYoutube /> Courses
+            <FiYoutube /> <span>Courses</span>
           </button>
           <button
+            className="admin-tab"
             onClick={() => setActiveTab('testimonials')}
             style={{
               padding: '1rem 2rem',
@@ -589,9 +694,10 @@ export default function AdminDashboard() {
               gap: '0.5rem'
             }}
           >
-            <FiStar /> Testimonials
+            <FiStar /> <span>Testimonials</span>
           </button>
           <button
+            className="admin-tab"
             onClick={() => setActiveTab('logos')}
             style={{
               padding: '1rem 2rem',
@@ -605,13 +711,13 @@ export default function AdminDashboard() {
               gap: '0.5rem'
             }}
           >
-            <FiPlus /> Training Logos
+            <FiImage /> <span>Training Logos</span>
           </button>
         </div>
 
         {/* Home Content Tab */}
         {activeTab === 'home' && (
-          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>Edit Home Page Content</h2>
             
             <div style={{ display: 'grid', gap: '1.5rem' }}>
@@ -980,8 +1086,8 @@ export default function AdminDashboard() {
 
         {/* Blogs Tab */}
         {activeTab === 'blogs' && (
-          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div className="admin-button-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Manage Blogs</h2>
               <button
                 onClick={addBlog}
@@ -1016,8 +1122,8 @@ export default function AdminDashboard() {
 
         {/* Courses Tab */}
         {activeTab === 'courses' && (
-          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div className="admin-button-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Manage Courses</h2>
               <button
                 onClick={addCourse}
@@ -1052,10 +1158,10 @@ export default function AdminDashboard() {
 
         {/* Testimonials Tab */}
         {activeTab === 'testimonials' && (
-          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Manage Testimonials</h2>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div className="admin-button-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>Manage Testimonials</h2>
+              <div className="admin-button-group" style={{ display: 'flex', gap: '1rem' }}>
                 {testimonials.length === 0 && (
                   <button
                     onClick={importTestimonials}
@@ -1122,10 +1228,10 @@ export default function AdminDashboard() {
 
         {/* Training Logos Tab */}
         {activeTab === 'logos' && (
-          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Manage Training Partners</h2>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div className="admin-button-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>Manage Training Partners</h2>
+              <div className="admin-button-group" style={{ display: 'flex', gap: '1rem' }}>
                 {trainingLogos.length === 0 && (
                   <button
                     onClick={importTrainingPartners}
@@ -1190,7 +1296,8 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -1230,7 +1337,7 @@ function BlogEditor({ blog, onUpdate, onDelete }) {
   };
 
   return (
-    <div style={{ border: '1px solid #e5e5e5', borderRadius: '8px', padding: '1.5rem' }}>
+    <div className="admin-card" style={{ border: '1px solid #e5e5e5', borderRadius: '8px', padding: '1.5rem' }}>
       {editing ? (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <input
@@ -1336,16 +1443,16 @@ function BlogEditor({ blog, onUpdate, onDelete }) {
               Published
             </label>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="admin-editor-actions" style={{ display: 'flex', gap: '1rem' }}>
             <button
               onClick={handleSave}
-              style={{ padding: '0.5rem 1rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              style={{ padding: '0.5rem 1rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
             >
               <FiSave /> Save
             </button>
             <button
               onClick={() => setEditing(false)}
-              style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
             >
               <FiX /> Cancel
             </button>
@@ -1353,7 +1460,7 @@ function BlogEditor({ blog, onUpdate, onDelete }) {
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+          <div className="admin-form-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
             <div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.5rem' }}>{blog.title}</h3>
               <p style={{ color: '#666', fontSize: '0.9rem' }}>{blog.excerpt}</p>
@@ -1431,7 +1538,7 @@ function CourseEditor({ course, onUpdate, onDelete }) {
   };
 
   return (
-    <div style={{ border: '1px solid #e5e5e5', borderRadius: '8px', padding: '1.5rem' }}>
+    <div className="admin-card" style={{ border: '1px solid #e5e5e5', borderRadius: '8px', padding: '1.5rem' }}>
       {editing ? (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <input
@@ -1561,7 +1668,7 @@ function CourseEditor({ course, onUpdate, onDelete }) {
               Published
             </label>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="admin-editor-actions" style={{ display: 'flex', gap: '1rem' }}>
             <button
               onClick={handleSave}
               style={{ padding: '0.5rem 1rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -1578,7 +1685,7 @@ function CourseEditor({ course, onUpdate, onDelete }) {
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+          <div className="admin-form-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
             <div style={{ flex: 1 }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.5rem' }}>{course.title}</h3>
               <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{course.description}</p>
@@ -1668,7 +1775,7 @@ function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
   };
 
   return (
-    <div style={{ border: '1px solid #e5e5e5', borderRadius: '8px', padding: '1.5rem' }}>
+    <div className="admin-card" style={{ border: '1px solid #e5e5e5', borderRadius: '8px', padding: '1.5rem' }}>
       {editing ? (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <textarea
@@ -1783,7 +1890,7 @@ function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
               Published
             </label>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="admin-editor-actions" style={{ display: 'flex', gap: '1rem' }}>
             <button
               onClick={handleSave}
               style={{ padding: '0.5rem 1rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -1800,7 +1907,7 @@ function TestimonialEditor({ testimonial, onUpdate, onDelete }) {
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+          <div className="admin-form-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '1rem', fontStyle: 'italic', color: '#333', marginBottom: '1rem', lineHeight: '1.6' }}>
                 "{testimonial.quote}"
@@ -1881,7 +1988,14 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
   };
 
   return (
-    <div style={{ border: '1px solid #e5e5e5', borderRadius: '8px', padding: '1.5rem' }}>
+    <div className="admin-card" style={{ 
+      border: '1px solid #e5e5e5', 
+      borderRadius: '8px', 
+      padding: '1.5rem',
+      backgroundColor: '#fff',
+      transition: 'box-shadow 0.2s',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+    }}>
       {editing ? (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <input
@@ -2004,7 +2118,7 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
               Published
             </label>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="admin-editor-actions" style={{ display: 'flex', gap: '1rem' }}>
             <button
               onClick={handleSave}
               style={{ padding: '0.5rem 1rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -2021,20 +2135,55 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-              <div style={{ width: '120px', height: '60px', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem' }}>
-                <img 
-                  src={logo.logoUrl} 
-                  alt={logo.name}
-                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                  onError={(e) => e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="60"%3E%3Crect fill="%23ddd" width="100" height="60"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="10"%3ENo Logo%3C/text%3E%3C/svg%3E'}
-                />
+          <div className="admin-form-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem' }}>
+            <div className="logo-info-wrapper" style={{ display: 'flex', alignItems: 'start', gap: '1rem', flex: 1 }}>
+              <div className="logo-preview-container" style={{ 
+                minWidth: '180px', 
+                width: '180px',
+                height: '100px', 
+                backgroundColor: '#ffffff', 
+                border: '2px solid #e5e5e5',
+                borderRadius: '8px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                padding: '1rem',
+                flexShrink: 0,
+                position: 'relative'
+              }}>
+                {logo.logoUrl ? (
+                  <img 
+                    src={logo.logoUrl} 
+                    alt={logo.name}
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                    onError={(e) => e.target.style.display = 'none'}
+                  />
+                ) : (
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: '0.75rem'
+                  }}>
+                    <FiImage size={24} color="#ccc" />
+                    <span style={{ marginTop: '0.5rem' }}>No Logo</span>
+                  </div>
+                )}
               </div>
-              <div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.25rem' }}>{logo.name}</h3>
-                <p style={{ fontSize: '0.85rem', color: '#666' }}>{logo.logoUrl}</p>
-                <div style={{ marginTop: '0.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div className="logo-card-content" style={{ flex: 1, minWidth: 0 }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{logo.name}</h3>
+                <p className="logo-url-text" style={{ 
+                  fontSize: '0.75rem', 
+                  color: '#999', 
+                  marginBottom: '0.75rem',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>{logo.logoUrl}</p>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ 
                     display: 'inline-block', 
                     padding: '0.25rem 0.75rem', 
@@ -2049,7 +2198,7 @@ function TrainingLogoEditor({ logo, onUpdate, onDelete }) {
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
               <button
                 onClick={() => setEditing(true)}
                 style={{ padding: '0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
