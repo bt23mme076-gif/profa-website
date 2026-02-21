@@ -1,19 +1,33 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { FiExternalLink, FiBookOpen, FiUsers, FiFileText, FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from 'react-icons/fi';
+import EditableText from '../components/EditableText';
 import { useFirestoreDoc } from '../hooks/useFirestoreDoc';
 import { useAuth } from '../context/AuthContext';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export default function Research() {
-  const { isAdmin } = useAuth() || {};
+  const { isAdmin } = useAuth();
   const [editingPub, setEditingPub] = useState(null);
   const [editingChapter, setEditingChapter] = useState(null);
   const [editingCase, setEditingCase] = useState(null);
   const [showAddPub, setShowAddPub] = useState(false);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [showAddCase, setShowAddCase] = useState(false);
+  
+  // Fetch research content from Firestore
+  const { data: researchData, loading } = useFirestoreDoc('content', 'research', {
+    page_heading: "Research & Publications",
+    page_description: "Explore my academic contributions spanning leadership, organizational behavior, and management research.",
+    featured_publications: [],
+    book_chapters: [],
+    cases: [],
+    technical_notes: [],
+    special_issues: [],
+    phd_students_chairperson: [],
+    phd_students_member: []
+  });
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -29,355 +43,287 @@ export default function Research() {
     amount: 0.1
   };
 
-  // Fetch research content from Firestore (optional - will use hardcoded data as fallback)
-  const { data: researchData, loading } = useFirestoreDoc('content', 'research', {});
-
-  // Hardcoded featured publications (original data preserved)
-  const featuredPublications = [
-    {
-      id: 1,
-      authors: "Kuril, S., Gupta, V., Kakkar, S., & Gupta, R.",
-      year: "2025",
-      title: "Public Sector Motivation: Construct Definition, Measurement, and Validation.",
-      journal: "Public Administration Quarterly, 0(0).",
-      doi: "https://journals.sagepub.com/doi/10.1177/07349149251359153"
-    },
-    {
-      id: 2,
-      authors: "George, P. R. & Gupta, V.",
-      year: "2024",
-      title: "Environmental identity and perceived salience of policy issues in coastal communities: a moderated-mediation analysis.",
-      journal: "Policy Science, 57, 787-822.",
-      doi: "https://link.springer.com/article/10.1007/s11077-024-09547-4"
-    },
-    {
-      id: 3,
-      authors: "Khan, F., Preeti, Gupta, V.",
-      year: "2024",
-      title: "Examining the relationships between instructional leadership, teacher self-efficacy and job satisfaction: a study of primary schools in India.",
-      journal: "Journal of Educational Administration, forthcoming.",
-      doi: "https://www.emerald.com/jea/article/62/2/223/1224308/Examining-the-relationships-between-instructional"
-    },
-    {
-      id: 4,
-      authors: "Gupta, V., Mittal, S., Ilavarasan, P. V., & Budhwar, P.",
-      year: "2024",
-      title: "Pay-for-performance, procedural justice, OCB and job performance: A sequential mediation model.",
-      journal: "Personnel Review, 53(1), 136-154.",
-      doi: "https://www.emerald.com/pr/article/53/1/136/1228152/Pay-for-performance-procedural-justice-OCB-and-job"
-    },
-    {
-      id: 5,
-      authors: "Gopakumar, K. V. & Gupta, V.",
-      year: "2024",
-      title: "Combining profit and purpose: Paradoxical leadership skills and social–business tensions during the formation and sustenance of a social enterprise.",
-      journal: "Nonprofit Management & Leadership, 34, 489-522.",
-      doi: "https://onlinelibrary.wiley.com/doi/10.1002/nml.21580"
-    },
-    {
-      id: 6,
-      authors: "Singhal, S. & Gupta, V.",
-      year: "2022",
-      title: "Religiosity and homophobia: Examining the impact of perceived importance of childbearing, hostile sexism and gender.",
-      journal: "Sexuality Research and Social Policy, 19, 1636-1649.",
-      doi: "https://link.springer.com/article/10.1007/s13178-022-00725-8"
-    },
-    {
-      id: 7,
-      authors: "Mittal, S., Gupta, V. & Mottiani, M.",
-      year: "2022",
-      title: "Examining the linkages between brand love, affective commitment, PWOM and turnover intentions: A social identity theory perspective.",
-      journal: "IIMB Management Review, 34(1), 7-17.",
-      doi: "https://www.sciencedirect.com/science/article/pii/S0970389622000234"
-    },
-    {
-      id: 8,
-      authors: "Kuril, S., Gupta. V. & Chand, V. S.",
-      year: "2021",
-      title: "Relationship between Negative Teacher Behaviors and Student Engagement: Evidence from India.",
-      journal: "International Journal of Educational Research, 109, 1-19.",
-      doi: "https://www.sciencedirect.com/science/article/pii/S0883035521001270"
-    },
-    {
-      id: 9,
-      authors: "Bhayana, C., Gupta, V., & Sharda, K.",
-      year: "2021",
-      title: "Exploring dynamics within multigenerational teams with millennials: A research framework.",
-      journal: "Business Perspectives and Research, 9(2), 252-268.",
-      doi: "https://journals.sagepub.com/doi/pdf/10.1177/2278533720964928"
-    },
-    {
-      id: 10,
-      authors: "Chattopadhyay, P, George, E., Li, J. & Gupta, V.",
-      year: "2020",
-      title: "Geographical dissimilarity and team member influence: Do emotions experienced in the initial team meeting matter?",
-      journal: "Academy of Management Journal, 63(6), 1807-1839.",
-      doi: "https://journals.aom.org/doi/10.5465/amj.2017.0744"
-    },
-    {
-      id: 11,
-      authors: "Gupta, V.",
-      year: "2020",
-      title: "Relationships between leadership, motivation, and employee-level innovation: Evidence from India.",
-      journal: "Personnel Review, 49(7), 1363-1379.",
-      doi: "https://www.emerald.com/pr/article/49/7/1363/453315/Relationships-between-leadership-motivation-and"
-    },
-    {
-      id: 12,
-      authors: "Pandey, A., Gupta, V., & Gupta, R.",
-      year: "2019",
-      title: "Spirituality and Innovative Behaviour in Teams: Examining the Mediating Role of Team Learning.",
-      journal: "IIMB Management Review, 31(2), 116-126.",
-      doi: "https://www.sciencedirect.com/science/article/pii/S0970389619301636"
-    },
-    {
-      id: 13,
-      authors: "Li, J., Li, A., Chattopadhyay, P., George, E., & Gupta, V.",
-      year: "2018",
-      title: "Team emotion diversity and performance: The moderating role of social class homogeneity.",
-      journal: "Group Dynamics: Theory, Research and Practice, 22(2), 76-92.",
-      doi: "https://psycnet.apa.org/record/2018-25949-002"
-    },
-    {
-      id: 14,
-      authors: "Agarwal, UA, & Gupta, V.",
-      year: "2018",
-      title: "Relationships between Job Characteristics, Work Engagement, Conscientiousness and Managers' Turnover Intentions: A Moderated-Mediation Analysis.",
-      journal: "Personnel Review, 47(2), 353-377.",
-      doi: "https://www.emerald.com/pr/article-pdf/47/2/353/2099767/pr-09-2016-0229.pdf"
-    },
-    {
-      id: 15,
-      authors: "Gupta, V., Chopra, S., & Kakani, R. K.",
-      year: "2018",
-      title: "Leadership Competencies for Effective Public Administration: A Study of Indian Administrative Service Officers.",
-      journal: "Journal of Asian Public Policy, 11(1), 98-120.",
-      doi: "https://www.tandfonline.com/doi/full/10.1080/17516234.2017.1353942"
-    },
-    {
-      id: 16,
-      authors: "Khatri, N., Gupta, V., & Varma, A.",
-      year: "2017",
-      title: "The relationship between HR capabilities and quality of patient care: The mediating role of proactive work behaviors.",
-      journal: "Human Resource Management, 56(4), 673-691.",
-      doi: "https://onlinelibrary.wiley.com/doi/full/10.1002/hrm.21794"
-    },
-    {
-      id: 17,
-      authors: "Gupta, V., Singh, S. & Bhattacharya, A.",
-      year: "2017",
-      title: "Relationships between Leadership, Work Engagement and Employee Innovative Performance: Empirical Evidence from the Indian R&D Context.",
-      journal: "International Journal of Innovation Management, 21(7), 1-30.",
-      doi: "https://www.worldscientific.com/doi/abs/10.1142/S1363919617500554"
-    },
-    {
-      id: 18,
-      authors: "Khatri, N., & Gupta, V.",
-      year: "2016",
-      title: "Effective implementation of health information technologies in US hospitals.",
-      journal: "Health Care Management Review, 41(1), 11-21.",
-      doi: "https://journals.lww.com/hcmrjournal/fulltext/2016/01000/effective_implementation_of_health_information.3.aspx"
-    },
-    {
-      id: 19,
-      authors: "Gupta, V., Agarwal, U., & Khatri, N.",
-      year: "2016",
-      title: "The relationships between perceived organizational support, affective commitment, psychological contract breach, organizational citizenship behavior, and work engagement.",
-      journal: "Journal of Advanced Nursing, 72(11), 2806-2817.",
-      doi: "https://onlinelibrary.wiley.com/doi/full/10.1111/jan.13043"
-    },
-    {
-      id: 20,
-      authors: "Gupta, V., & Singh, S.",
-      year: "2015",
-      title: "Leadership and Creative Performance Behaviors in R&D Laboratories: Examining the Role of Justice Perceptions.",
-      journal: "Journal of Leadership and Organizational Studies, 22(1), 21-36.",
-      doi: "https://jlo.sagepub.com/content/early/2014/01/05/1548051813517002"
-    },
-    {
-      id: 21,
-      authors: "Gupta, V., & Singh, S.",
-      year: "2014",
-      title: "Psychological Capital as a Mediator of the Relationship between Leadership and Creative Performance Behaviors: Empirical Evidence from the Indian R&D Sector.",
-      journal: "The International Journal of Human Resource Management, 25(10), 1373-1394.",
-      doi: "https://www.tandfonline.com/eprint/8JVJFdePeVr6cDq4a7mN/full"
-    },
-    {
-      id: 22,
-      authors: "Gupta, V., Singh, S., & Khatri, N.",
-      year: "2013",
-      title: "Creativity in Research and Development Laboratories: A New Scale for Leader Behaviors.",
-      journal: "IIMB Management Review, 25(2), 83-90.",
-      doi: "https://www.sciencedirect.com/science/article/pii/S0970389613000177"
-    },
-    {
-      id: 23,
-      authors: "Gupta, V. & Singh, S.",
-      year: "2013",
-      title: "How Leaders Impact Employee Creativity: A Study of Indian R&D Laboratories.",
-      journal: "Management Research Review, 36(1), 66-88.",
-      doi: "https://www.emerald.com/journals.htm?issn=2040-8269&volume=36&issue=1&articleid=17068408&show=abstract"
-    },
-    {
-      id: 24,
-      authors: "Gupta, V. & Singh, S.",
-      year: "2013",
-      title: "An Empirical Study of the Dimensionality of Organizational Justice and its Relationship with Organizational Citizenship Behavior in the Indian Context.",
-      journal: "The International Journal of Human Resource Management, 24(6), 1277-1299.",
-      doi: "https://www.tandfonline.com/doi/full/10.1080/09585192.2012.709188"
-    },
-    {
-      id: 25,
-      authors: "Gupta, V. & Kumar, S.",
-      year: "2013",
-      title: "Impact of Performance Appraisal Justice on Employee Engagement: A Study of Indian Professionals.",
-      journal: "Employee Relations: The International Journal, 35(1), 61-78.",
-      doi: "https://www.emerald.com/fwd.htm?id=aob&ini=aob&doi=10.1108/01425451311279410"
-    }
-  ];
-
-  // Admin functions for managing publications
+  // Add new publication
   const addPublication = async (newPub) => {
     try {
       const pubWithId = { ...newPub, id: Date.now() };
-      let currentPubs = researchData?.featured_publications;
-      // If Firestore has no publications or an empty array, merge with hardcoded 25
-      if (!currentPubs || currentPubs.length === 0) {
-        currentPubs = featuredPublications;
-      }
       await updateDoc(doc(db, 'content', 'research'), {
-        featured_publications: [...currentPubs, pubWithId]
+        featured_publications: arrayUnion(pubWithId)
       });
       setShowAddPub(false);
-      alert('Publication added successfully!');
     } catch (error) {
       console.error('Error adding publication:', error);
       alert('Failed to add publication');
     }
   };
 
+  // Update publication
   const updatePublication = async (updatedPub) => {
     try {
-      const currentPubs = researchData?.featured_publications || featuredPublications;
-      const updatedPubs = currentPubs.map(p => p.id === updatedPub.id ? updatedPub : p);
+      const pubs = researchData.featured_publications || [];
+      const oldPub = pubs.find(p => p.id === updatedPub.id);
       await updateDoc(doc(db, 'content', 'research'), {
-        featured_publications: updatedPubs
+        featured_publications: arrayRemove(oldPub)
+      });
+      await updateDoc(doc(db, 'content', 'research'), {
+        featured_publications: arrayUnion(updatedPub)
       });
       setEditingPub(null);
-      alert('Publication updated successfully!');
     } catch (error) {
       console.error('Error updating publication:', error);
       alert('Failed to update publication');
     }
   };
 
+  // Delete publication
   const deletePublication = async (pub) => {
     if (!confirm('Delete this publication?')) return;
     try {
-      const currentPubs = researchData?.featured_publications || featuredPublications;
-      const updatedPubs = currentPubs.filter(p => p.id !== pub.id);
       await updateDoc(doc(db, 'content', 'research'), {
-        featured_publications: updatedPubs
+        featured_publications: arrayRemove(pub)
       });
-      alert('Publication deleted successfully!');
     } catch (error) {
       console.error('Error deleting publication:', error);
       alert('Failed to delete publication');
     }
   };
 
+  // Similar functions for book chapters
   const addBookChapter = async (newChapter) => {
     try {
       const chapterWithId = { ...newChapter, id: Date.now() };
-      const currentChapters = researchData?.book_chapters || bookChapters;
       await updateDoc(doc(db, 'content', 'research'), {
-        book_chapters: [...currentChapters, chapterWithId]
+        book_chapters: arrayUnion(chapterWithId)
       });
       setShowAddChapter(false);
-      alert('Chapter added successfully!');
     } catch (error) {
       console.error('Error adding chapter:', error);
-      alert('Failed to add chapter');
     }
   };
 
   const deleteBookChapter = async (chapter) => {
     if (!confirm('Delete this book chapter?')) return;
     try {
-      const currentChapters = researchData?.book_chapters || bookChapters;
-      const updatedChapters = currentChapters.filter(c => c.id !== chapter.id);
       await updateDoc(doc(db, 'content', 'research'), {
-        book_chapters: updatedChapters
+        book_chapters: arrayRemove(chapter)
       });
-      alert('Chapter deleted successfully!');
     } catch (error) {
       console.error('Error deleting chapter:', error);
-      alert('Failed to delete chapter');
     }
   };
 
+  // Similar functions for cases
   const addCase = async (newCase) => {
     try {
       const caseWithId = { ...newCase, id: Date.now() };
-      const currentCases = researchData?.cases || cases;
       await updateDoc(doc(db, 'content', 'research'), {
-        cases: [...currentCases, caseWithId]
+        cases: arrayUnion(caseWithId)
       });
       setShowAddCase(false);
-      alert('Case added successfully!');
     } catch (error) {
       console.error('Error adding case:', error);
-      alert('Failed to add case');
     }
   };
 
   const deleteCase = async (caseItem) => {
     if (!confirm('Delete this case?')) return;
     try {
-      const currentCases = researchData?.cases || cases;
-      const updatedCases = currentCases.filter(c => c.id !== caseItem.id);
       await updateDoc(doc(db, 'content', 'research'), {
-        cases: updatedCases
+        cases: arrayRemove(caseItem)
       });
-      alert('Case deleted successfully!');
     } catch (error) {
       console.error('Error deleting case:', error);
-      alert('Failed to delete case');
     }
   };
 
+  const featuredPublications = researchData.featured_publications || [];
   const phdStudents = {
-    chairperson: [
-      { name: "Ananya Syal (IIMA)", position: "Assistant Professor, IIM Amritsar" },
-      { name: "Vedant Dev (IIMA)", position: "Faculty, Ahmedabad University" },
-      { name: "Lokesh Malviya", position: "ABD (IIMA, OB area)" },
-      { name: "Anmol Basant", position: "ABD (IIMA, OB area)" },
-      { name: "Harish Premi", position: "ABD (IIMA, RJMCEI)" }
-    ],
-    member: [
-      "Bhumi Trivedi (HRM, IIMA)",
-      "Furkan Khan (RJMCEI, IIMA)",
-      "Parth Soni (RJMCEI, IIMA)",
-      "Sharad Sharma (IS area, IIMA) - Indian Railways",
-      "Samvet Kuril (RJMCEI, IIMA) - Faculty, Ahmedabad University",
-      "Nycil George (Strategy area, IIMA) - Faculty, IIM Kozhikode",
-      "Shiva Kakkar (OB area, IIMA) - Faculty, IIM Nagpur",
-      "Vijayta Doshi (OB area, IIMA) - Faculty, IIM Udaipur",
-      "Smriti Agarwalla (OB area, IIMA)",
-      "Ritika Singh (HRM area, Nirma University) - Faculty, DY Patil University"
-    ]
+    chairperson: researchData.phd_students_chairperson || [],
+    member: researchData.phd_students_member || []
+  };
+  const bookChapters = researchData.book_chapters || [];
+  const specialIssues = researchData.special_issues || [];
+  const cases = researchData.cases || [];
+  const technicalNotes = researchData.technical_notes || [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#2A35CC] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg font-['Inter'] text-gray-600">Loading research data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white">
+      {/* Hero Section */}
+      <section className="pt-32 pb-16 px-6 lg:px-16 bg-gradient-to-b from-[#e6e8ff] to-white">
+      title: "Public Sector Motivation: Construct Definition, Measurement, and Validation.",
+      journal: "Public Administration Quarterly, 0(0).",
+      doi: "https://doi.org/10.1177/07349149251359153"
+    },
+    {
+      authors: "Gupta, V., Makhecha, U. P., & Shaik, F. H.",
+      year: "2021",
+      title: "Era of Disruption: Opportunities and Challenges for Businesses in India.",
+      journal: "Business Perspectives and Research, 9(2), 192-194.",
+      doi: "https://journals.sagepub.com/doi/full/10.1177/2278533721989828"
+    },
+    {
+      authors: "Wei, L-Q, Lehmberg, D., Gupta, V., Young, M. N., Southam, C., & Liang, J.",
+      year: "2020",
+      title: "From the new editorial team: Publishing quality teaching case.",
+      journal: "Asian Case Research Journal, 24(1), 1-9.",
+      doi: "https://www.worldscientific.com/doi/abs/10.1142/S0218927520010014"
+    },
+    {
+      authors: "Mittal, S., Gupta, V., Motiani, M.",
+      year: "2018",
+      title: "Qasab: Kutch Craftswomen's Producer Co. Ltd.",
+      journal: "Asian Case Research Journal, 22(2), 255-277.",
+      doi: "https://www.worldscientific.com/doi/abs/10.1142/S0218927518500116"
+    },
+    {
+      authors: "Parida, B. & Gupta, V.",
+      year: "2017",
+      title: "Effects of Non-conformity on Perceived Status and Competence: Examining the Moderating Role of Physical Attractiveness.",
+      journal: "Psychological Studies, 62(3), 305-313.",
+      doi: "https://link.springer.com/article/10.1007/s12646-017-0410-1"
+    },
+    {
+      authors: "Desai, N., & Gupta, V.",
+      year: "2016",
+      title: "Selective perceptions and group brainstorming: An investigation of auditors' fraud risk assessment.",
+      journal: "International Journal of Behavioral Accounting and Finance, 6(1), 1-25.",
+      doi: "https://www.inderscience.com/offer.php?id=79875"
+    },
+    {
+      authors: "Mittal, S., Gupta, V., & Motiani, M.",
+      year: "2016",
+      title: "HRD climate impacts customer satisfaction: Empirical study of Indian private banks.",
+      journal: "Indian Journal of Industrial Relations, 51(3), 447-459.",
+      doi: "http://www.publishingindia.com/ijir/22/hrd-climate-customer-satisfaction-in-indian-private-banks/518/3693/"
+    },
+    {
+      authors: "Mittal, S., Gupta, V., & Motiani, M.",
+      year: "2016",
+      title: "Relation between human resource development climate and organizational commitment: Empirical study in Indian Banking Sector.",
+      journal: "International Journal of Indian Culture and Business Management, 12(2), 204-223.",
+      doi: "https://www.inderscience.com/info/inarticletoc.php?jcode=ijicbm&year=2016&vol=12&issue=2"
+    },
+    {
+      authors: "Gupta, V.",
+      year: "2014",
+      title: "HRM Practices and Employee Creativity: Conceptualizing the Mediating and Moderating Role of Psychological Capital.",
+      journal: "Indian Journal of Industrial Relations, 49(4), 649-662.",
+      doi: "http://www.shriramcentrelir.org/publications/indian-journal-industrial-relations/vol-49-no-4-april-2014"
+    },
+    {
+      authors: "Gupta, V. & Singh, S.",
+      year: "2013",
+      title: "Developing a Scale for Measuring Ability-Based Emotional Intelligence in Indian context.",
+      journal: "The International Journal of Indian Culture and Business Management, 6(3), 273-299.",
+      doi: "https://www.inderscience.com/info/inarticle.php?artid=53103"
+    },
+    {
+      authors: "Gupta, V. & Singh, S.",
+      year: "2012",
+      title: "Empirical Evaluation of Dimensionality of Organizational Citizenship Behavior for Indian Business Context.",
+      journal: "Psychological Studies, 57(4), 392-403.",
+      doi: "https://link.springer.com/article/10.1007/s12646-012-0154-x"
+    },
+    {
+      authors: "Gupta, V., Singh, S., Kumar, S., & Bhattacharya, A.",
+      year: "2012",
+      title: "Development of a Causal Framework Linking Leadership to Employee Creativity: A Study of Indian R&D Laboratories.",
+      journal: "The Indian Journal of Industrial Relations, 48(1), 120-136.",
+      doi: "http://www.shriramcentrelir.org/publications/indian-journal-industrial-relations/vol-48-no-1-july-2012"
+    },
+    {
+      authors: "George, P. R. & Gupta, V.",
+      year: "2024",
+      title: "Environmental identity and perceived salience of policy issues in coastal communities: a moderated-mediation analysis.",
+      journal: "Policy Science, 57, 787-822."
+    },
+    {
+      authors: "Khan, F., Preeti, Gupta, V.",
+      year: "2024",
+      title: "Examining the relationships between instructional leadership, teacher self-efficacy and job satisfaction: a study of primary schools in India.",
+      journal: "Journal of Educational Administration, forthcoming."
+    },
+    {
+      authors: "Gupta, V., Mittal, S., Ilavarasan, P. V., & Budhwar, P.",
+      year: "2024",
+      title: "Pay-for-performance, procedural justice, OCB and job performance: A sequential mediation model.",
+      journal: "Personnel Review, 53(1), 136-154."
+    },
+    {
+      authors: "Gopakumar, K. V. & Gupta, V.",
+      year: "2024",
+      title: "Combining profit and purpose: Paradoxical leadership skills and social–business tensions during the formation and sustenance of a social enterprise.",
+      journal: "Nonprofit Management & Leadership, 34, 489-522.",
+      doi: "https://doi.org/10.1002/nml.21580"
+    },
+    {
+      authors: "Singhal, S. & Gupta, V.",
+      year: "2022",
+      title: "Religiosity and homophobia: Examining the impact of perceived importance of childbearing, hostile sexism and gender.",
+      journal: "Sexuality Research and Social Policy, 19, 1636-1649."
+    },
+    {
+      authors: "Mittal, S., Gupta, V. & Mottiani, M.",
+      year: "2022",
+      title: "Examining the linkages between brand love, affective commitment, PWOM and turnover intentions: A social identity theory perspective.",
+      journal: "IIMB Management Review, 34(1), 7-17."
+    },
+    {
+      authors: "Kuril, S., Gupta. V. & Chand, V. S.",
+      year: "2021",
+      title: "Relationship between Negative Teacher Behaviors and Student Engagement: Evidence from India.",
+      journal: "International Journal of Educational Research, 109, 1-19."
+    },
+    {
+      authors: "Bhayana, C., Gupta, V., & Sharda, K.",
+      year: "2021",
+      title: "Exploring dynamics within multigenerational teams with millennials: A research framework.",
+      journal: "Business Perspectives and Research, 9(2), 252-268."
+    },
+    {
+      authors: "Chattopadhyay, P, George, E., Li, J. & Gupta, V.",
+      year: "2020",
+      title: "Geographical dissimilarity and team member influence: Do emotions experienced in the initial team meeting matter?",
+      journal: "Academy of Management Journal, 63(6), 1807-1839."
+    },
+    {
+      authors: "Gupta, V.",
+      year: "2020",
+      title: "Relationships between leadership, motivation, and employee-level innovation: Evidence from India.",
+      journal: "Personnel Review, 49(7), 1363-1379."
+    },
+    {
+      authors: "Pandey, A., Gupta, V., & Gupta, R.",
+      year: "2019",
+      title: "Spirituality and Innovative Behaviour in Teams: Examining the Mediating Role of Team Learning.",
+      journal: "IIMB Management Review, 31(2), 116-126."
+    }
+  ];
+
+  const phdStudents = {
+    chairperson: researchData.phd_students_chairperson || [],
+    member: researchData.phd_students_member || []
   };
 
-  const bookChapters = [
+  const bookChapters = researchData.book_chapters || [];
     {
-      id: 1,
       authors: "Gupta, V. and Basant, A.",
       year: "2025",
       title: "HEAL: Defining a new POB construct.",
       book: "In C. L. Cooper, S. Pattnaik & R. V. Rodriguez (Eds.) Advancing Positive Organizational Behaviour. Routledge."
     },
     {
-      id: 2,
       authors: "Gupta, V.",
       year: "2023",
       title: "TREAT Leadership Framework: A Knowledge-Based Theory of the Global Firm.",
@@ -385,7 +331,6 @@ export default function Research() {
       doi: "https://link.springer.com/chapter/10.1007/978-3-031-17203-8_28"
     },
     {
-      id: 3,
       authors: "Gupta, V. & Gopalan, N.",
       year: "2021",
       title: "L-E-A-P: A new model of organisational culture for knowledge-based organisations.",
@@ -393,7 +338,6 @@ export default function Research() {
       doi: "https://www.taylorfrancis.com/chapters/edit/10.4324/9781003092025-4-5/new-organizational-culture-framework-knowledge-intensive-organizations-vishal-gupta-neena-gopalan"
     },
     {
-      id: 4,
       authors: "Gupta, V., Bhattacharya, S. & Gopalan, N.",
       year: "2021",
       title: "Emotions, emotional intelligence and conflict management: A conceptual framework.",
@@ -401,7 +345,6 @@ export default function Research() {
       doi: "https://www.taylorfrancis.com/chapters/edit/10.4324/9781003094463-4-6/emotions-emotional-intelligence-conflict-management-vishal-gupta-shalini-bhattacharya-neena-gopalan"
     },
     {
-      id: 5,
       authors: "Syal, A. & Gupta, V.",
       year: "2021",
       title: "Leveraging social media to enable leadership during crises: Linking TREAT leader behaviours and BOAT leader attributes.",
@@ -409,7 +352,6 @@ export default function Research() {
       doi: "https://search.bvsalud.org/global-literature-on-novel-coronavirus-2019-ncov/resource/en/covidwho-1469291"
     },
     {
-      id: 6,
       authors: "Singh, S. & Gupta, V.",
       year: "2019",
       title: "Organizational Performance Research in India: A Review and Future Research Agenda.",
@@ -417,7 +359,6 @@ export default function Research() {
       doi: "https://academic.oup.com/book/36805/chapter-abstract/321958320?redirectedFrom=fulltext"
     },
     {
-      id: 7,
       authors: "Gupta D., & Gupta V.",
       year: "2018",
       title: "Effective Policing in a VUCA Environment: Lessons from a Dark Network.",
@@ -425,7 +366,6 @@ export default function Research() {
       doi: "https://link.springer.com/chapter/10.1007/978-981-10-8926-8_7"
     },
     {
-      id: 8,
       authors: "Gupta, D. & Gupta, V.",
       year: "2017",
       title: "Why are Dark Networks Resilient and What can the Security Forces Learn from them? A Study of Strategies, Military Tactics and Organizational Structure of CPI (Maoists).",
@@ -433,14 +373,12 @@ export default function Research() {
       doi: "https://strategiesinemergingmarkets.com/"
     },
     {
-      id: 9,
       authors: "Gupta, V., Singh, S. & Bhattacharya, A.",
       year: "2014",
       title: "Inspiring creativity in Indian R&D organizations: Examining the role of leadership, justice perceptions, motivation and psychological capital.",
       book: "In Banerjee, A. (Ed.) Emerging Issues in Management: Proceedings of Pan-IIM World Management Conference (pp. 45-53). New Delhi: Emerald."
     },
     {
-      id: 10,
       authors: "Gupta, V. & Singh, S.",
       year: "2011",
       title: "Development of a Causal Framework Linking Leadership to Employee Creativity.",
@@ -448,7 +386,6 @@ export default function Research() {
       doi: "http://southernmanagement.org/meetings/2011/proceedings/PaperID106.pdf"
     },
     {
-      id: 11,
       authors: "Gupta, V. & Singh, S.",
       year: "2010",
       title: "Developing a Set of High Performance HRM Practices and Exploring its Relationship with OCB and Organizational Justice.",
@@ -457,7 +394,7 @@ export default function Research() {
     }
   ];
 
-  const specialIssues = [
+  const specialIssues = researchData.special_issues || [
     {
       title: "IIMB Management Review Special Issue",
       description: "Based on the Seventh Indian Academy of Management (INDAM) conference",
@@ -480,76 +417,65 @@ export default function Research() {
     }
   ];
 
-  const cases = [
+  const cases = researchData.cases || [
     {
-      id: 1,
       title: "Pramukh Swami Maharaj Shatabdi Mahotsav: Event Scale",
       code: "IIMA/ADCLOD0003",
       link: "https://cases.iima.ac.in/index.php/pramukh-swami-maharaj-shatabdi-mahotsav-event-scale.html"
     },
     {
-      id: 2,
       title: "Pramukh Swami Maharaj Shatabdi Mahotsav: Service-Orientation, People Management and Leadership",
       code: "IIMA/ADCLOD0004",
       link: "https://cases.iima.ac.in/index.php/pramukh-swami-maharaj-shatabdi-mahotsav-service-orientation-people-management-and-leadership.html"
     },
     {
-      id: 3,
       title: "Tata vs Mistry: Struggle for Succession and Governance",
       code: "IIMA/0246 - A, B, C, D",
       link: "https://cases.iima.ac.in/index.php/tata-vs-mistry-a-struggle-for-succession-and-governance.html"
     },
     {
-      id: 4,
       title: "VIKAS and SAVE: Combining cause with commerce",
       code: "IIMA/OB0239",
       link: "https://cases.iima.ac.in/index.php/vikas-and-save-combining-cause-with-commerce.html"
     },
     {
-      id: 5,
       title: "Aditya Kumar: Office Politics and managing upwards",
       code: "IIMA/OB0236",
       link: "https://cases.iima.ac.in/index.php/aditya-kumar-office-politics-and-managing-upwards.html"
     },
     {
-      id: 6,
       title: "Vasudha's Dismay",
       code: "IIMA/OB0230",
       link: "https://cases.iima.ac.in/index.php/vasudha-s-dismay.html"
     },
     {
-      id: 7,
       title: "Mohan Dixit",
       code: "IIMA/OB0233, IIMA/OB0233TN",
       link: "https://cases.iima.ac.in/index.php/catalogsearch/result/?attr=0&q=OB0233"
     },
     {
-      id: 8,
       title: "Meera Nair at PhoenixWay: Which Way to Go",
       code: "IIMA/OB0231, IIMA/OB0231TN",
       link: "https://cases.iima.ac.in/index.php/catalogsearch/result/?attr=0&q=OB0231"
     },
     {
-      id: 9,
       title: "GAIL 'Saksham' Program: Remoulding the Future",
       code: "IIMA/PSG0123, IIMA/PSG0123TN",
       link: "https://cases.iima.ac.in/index.php/gail-saksham-program-remoulding-the-future.html"
     },
     {
-      id: 10,
       title: "CSIR Tech Private Limited: Facilitating Lab to Market Journeys",
       code: "IIMA/OB0218, IIMA/OB0218S",
       link: "https://www.iveypublishing.ca/s/?id=85693"
     },
     {
-      id: 11,
       title: "Performance Management at IRD Corporation (A) and (B)",
       code: "IIMA/P&IR0227A,B",
       link: "https://cases.iima.ac.in/index.php/performance-management-at-ird-corporation-a.html"
     }
   ];
 
-  const technicalNotes = [
+  const technicalNotes = researchData.technical_notes || [
     {
       title: "A Note on Decision-Making",
       code: "IIMA/OB0232TEC",
@@ -580,13 +506,6 @@ export default function Research() {
     }
   ];
 
-  // Use Firestore data if available, otherwise use hardcoded data
-  const displayPublications = (researchData?.featured_publications && researchData.featured_publications.length > 0)
-    ? researchData.featured_publications
-    : featuredPublications;
-  const displayBookChapters = researchData?.book_chapters || bookChapters;
-  const displayCases = researchData?.cases || cases;
-
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -600,10 +519,10 @@ export default function Research() {
           >
             <div className="w-20 h-1 bg-[#f97316] mb-8 rounded-full mx-auto"></div>
             <h1 className="text-5xl lg:text-7xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-6">
-              {researchData?.page_heading || "Research"}
+              Research
             </h1>
             <p className="text-xl lg:text-2xl font-['Inter'] text-gray-600 max-w-3xl mx-auto">
-              {researchData?.page_description || "Advancing knowledge in leadership, organizational behavior, and human resource management"}
+              Advancing knowledge in leadership, organizational behavior, and human resource management
             </p>
           </motion.div>
         </div>
@@ -662,16 +581,14 @@ export default function Research() {
           </motion.div>
 
           {showAddPub && isAdmin && (
-            <div className="mb-6 p-6 bg-white rounded-xl border-2 border-[#2A35CC] shadow-lg">
-              <PublicationForm
-                onSave={addPublication}
-                onCancel={() => setShowAddPub(false)}
-              />
-            </div>
+            <PublicationForm
+              onSave={addPublication}
+              onCancel={() => setShowAddPub(false)}
+            />
           )}
 
           <div className="space-y-6">
-            {displayPublications.map((pub, index) => (
+            {featuredPublications.map((pub, index) => (
               <motion.div
                 key={pub.id || index}
                 initial="hidden"
@@ -712,17 +629,17 @@ export default function Research() {
                 )}
               </motion.div>
             ))}
-
-            {editingPub && isAdmin && (
-              <div className="mt-6 p-6 bg-white rounded-xl border-2 border-blue-500 shadow-lg">
-                <PublicationForm
-                  publication={editingPub}
-                  onSave={updatePublication}
-                  onCancel={() => setEditingPub(null)}
-                />
-              </div>
-            )}
           </div>
+
+          {editingPub && isAdmin && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <PublicationForm
+                publication={editingPub}
+                onSave={updatePublication}
+                onCancel={() => setEditingPub(null)}
+              />
+            </div>
+          )}
         </div>
       </section>
 
@@ -736,45 +653,17 @@ export default function Research() {
             viewport={viewportOptions}
             variants={fadeInUp}
           >
-            <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#fb923c] rounded-lg flex items-center justify-center">
-                  <FiFileText className="text-white text-xl" />
-                </div>
-                <h2 className="text-3xl lg:text-4xl font-['Playfair_Display'] font-bold text-[#1a1a1a]">
-                  Cases
-                </h2>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-[#fb923c] rounded-lg flex items-center justify-center">
+                <FiFileText className="text-white text-xl" />
               </div>
-              {isAdmin && (
-                <button
-                  onClick={() => setShowAddCase(true)}
-                  className="flex items-center gap-2 bg-[#fb923c] hover:bg-[#ea580c] text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
-                >
-                  <FiPlus size={16} /> Add Case
-                </button>
-              )}
+              <h2 className="text-3xl lg:text-4xl font-['Playfair_Display'] font-bold text-[#1a1a1a]">
+                Cases
+              </h2>
             </div>
-
-            {showAddCase && isAdmin && (
-              <div className="mb-4 p-4 bg-white rounded-lg border-2 border-[#fb923c]">
-                <CaseForm
-                  onSave={addCase}
-                  onCancel={() => setShowAddCase(false)}
-                />
-              </div>
-            )}
-
             <ul className="space-y-3">
-              {displayCases.map((caseItem, index) => (
-                <li key={caseItem.id || index} className="font-['Inter'] text-gray-700 pl-4 border-l-2 border-[#fb923c] hover:bg-[#fff7ed] p-2 transition-colors relative group">
-                  {isAdmin && (
-                    <button
-                      onClick={() => deleteCase(caseItem)}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  )}
+              {cases.map((caseItem, index) => (
+                <li key={index} className="font-['Inter'] text-gray-700 pl-4 border-l-2 border-[#fb923c] hover:bg-[#fff7ed] p-2 transition-colors">
                   <div className="flex flex-col gap-1">
                     <span className="font-semibold">{caseItem.title}</span>
                     <span className="text-sm text-gray-500">({caseItem.code})</span>
@@ -843,53 +732,22 @@ export default function Research() {
             variants={fadeInUp}
             className="mb-12"
           >
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-4">
-                  Book Chapters & Conference Proceedings
-                </h2>
-                <div className="w-24 h-1 bg-[#2A35CC] rounded-full"></div>
-              </div>
-              {isAdmin && (
-                <button
-                  onClick={() => setShowAddChapter(true)}
-                  className="flex items-center gap-2 bg-[#2A35CC] hover:bg-[#1f2a99] text-white px-4 py-2 rounded-lg font-semibold transition-all"
-                >
-                  <FiPlus /> Add Chapter
-                </button>
-              )}
-            </div>
+            <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-4">
+              Book Chapters & Conference Proceedings
+            </h2>
+            <div className="w-24 h-1 bg-[#2A35CC] rounded-full"></div>
           </motion.div>
 
-          {showAddChapter && isAdmin && (
-            <div className="mb-6 p-6 bg-white rounded-xl border-2 border-[#2A35CC] shadow-lg">
-              <BookChapterForm
-                onSave={addBookChapter}
-                onCancel={() => setShowAddChapter(false)}
-              />
-            </div>
-          )}
-
           <div className="space-y-6">
-            {displayBookChapters.map((chapter, index) => (
+            {bookChapters.map((chapter, index) => (
               <motion.div
-                key={chapter.id || index}
+                key={index}
                 initial="hidden"
                 whileInView="visible"
                 viewport={viewportOptions}
                 variants={fadeInUp}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow border-l-4 border-[#2A35CC] relative group"
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow border-l-4 border-[#2A35CC]"
               >
-                {isAdmin && (
-                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => deleteBookChapter(chapter)}
-                      className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
-                  </div>
-                )}
                 <p className="font-['Inter'] text-gray-700 mb-2">
                   <span className="font-semibold text-[#1a1a1a]">{chapter.authors}</span> ({chapter.year}). {chapter.title}
                 </p>
@@ -1041,229 +899,76 @@ function PublicationForm({ publication, onSave, onCancel }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <h3 className="text-2xl font-bold mb-4">
         {publication ? 'Edit Publication' : 'Add New Publication'}
       </h3>
-      <div>
-        <label className="block text-sm font-semibold mb-2">Authors</label>
-        <input
-          type="text"
-          value={formData.authors}
-          onChange={(e) => setFormData({ ...formData, authors: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-2">Year</label>
-        <input
-          type="text"
-          value={formData.year}
-          onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-2">Title</label>
-        <textarea
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          rows={3}
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-2">Journal</label>
-        <input
-          type="text"
-          value={formData.journal}
-          onChange={(e) => setFormData({ ...formData, journal: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-2">DOI/Link (optional)</label>
-        <input
-          type="url"
-          value={formData.doi}
-          onChange={(e) => setFormData({ ...formData, doi: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-      <div className="flex gap-3 justify-end">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-6 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold transition-colors"
-        >
-          <FiX className="inline mr-2" /> Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-6 py-2 bg-[#2A35CC] hover:bg-[#1f2a99] text-white rounded-lg font-semibold transition-colors"
-        >
-          <FiSave className="inline mr-2" /> Save
-        </button>
-      </div>
-    </form>
-  );
-}
-
-// Book Chapter Form Component
-function BookChapterForm({ onSave, onCancel }) {
-  const [formData, setFormData] = useState({
-    authors: '',
-    year: new Date().getFullYear().toString(),
-    title: '',
-    book: '',
-    doi: ''
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-    setFormData({ authors: '', year: new Date().getFullYear().toString(), title: '', book: '', doi: '' });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <h3 className="text-xl font-bold mb-3">Add New Book Chapter</h3>
-      <div className="grid md:grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold mb-1">Authors</label>
+          <label className="block text-sm font-semibold mb-2">Authors</label>
           <input
             type="text"
             value={formData.authors}
             onChange={(e) => setFormData({ ...formData, authors: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold mb-1">Year</label>
+          <label className="block text-sm font-semibold mb-2">Year</label>
           <input
             type="text"
             value={formData.year}
             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-1">Title</label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-1">Book/Conference</label>
-        <input
-          type="text"
-          value={formData.book}
-          onChange={(e) => setFormData({ ...formData, book: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-1">DOI/Link (optional)</label>
-        <input
-          type="url"
-          value={formData.doi}
-          onChange={(e) => setFormData({ ...formData, doi: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-        />
-      </div>
-      <div className="flex gap-2 justify-end">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg text-sm font-semibold"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-[#2A35CC] hover:bg-[#1f2a99] text-white rounded-lg text-sm font-semibold"
-        >
-          Save Chapter
-        </button>
-      </div>
-    </form>
-  );
-}
-
-// Case Form Component
-function CaseForm({ onSave, onCancel }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    code: '',
-    link: ''
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-    setFormData({ title: '', code: '', link: '' });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <h3 className="text-lg font-bold mb-3">Add New Case</h3>
-      <div>
-        <label className="block text-sm font-semibold mb-1">Case Title</label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-1">Case Code</label>
-        <input
-          type="text"
-          value={formData.code}
-          onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-          placeholder="e.g. IIMA/OB0230"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-semibold mb-1">Link (optional)</label>
-        <input
-          type="url"
-          value={formData.link}
-          onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-        />
-      </div>
-      <div className="flex gap-2 justify-end">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg text-sm font-semibold"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-[#fb923c] hover:bg-[#ea580c] text-white rounded-lg text-sm font-semibold"
-        >
-          Save Case
-        </button>
-      </div>
-    </form>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Title</label>
+          <textarea
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            rows={3}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Journal</label>
+          <input
+            type="text"
+            value={formData.journal}
+            onChange={(e) => setFormData({ ...formData, journal: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-2">DOI/Link (optional)</label>
+          <input
+            type="url"
+            value={formData.doi}
+            onChange={(e) => setFormData({ ...formData, doi: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex gap-3 justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-6 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold transition-colors"
+          >
+            <FiX className="inline mr-2" /> Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-2 bg-[#2A35CC] hover:bg-[#1f2a99] text-white rounded-lg font-semibold transition-colors"
+          >
+            <FiSave className="inline mr-2" /> Save
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

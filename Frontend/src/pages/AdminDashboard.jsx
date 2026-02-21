@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
-import { doc, getDoc, updateDoc, collection, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
-import { FiSave, FiPlus, FiTrash2, FiEdit, FiX, FiBookOpen, FiYoutube, FiFileText, FiDownload, FiStar, FiImage, FiUpload } from 'react-icons/fi';
+import { doc, getDoc, updateDoc, setDoc, collection, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { FiSave, FiPlus, FiTrash2, FiEdit, FiX, FiBookOpen, FiYoutube, FiFileText, FiDownload, FiStar, FiImage, FiUpload, FiUsers, FiBriefcase } from 'react-icons/fi';
 import { uploadToCloudinary } from '../utils/cloudinaryUpload';
 
 // Add mobile responsive styles
@@ -236,6 +236,9 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
   const [homeContent, setHomeContent] = useState({});
+  const [aboutContent, setAboutContent] = useState({});
+  const [researchContent, setResearchContent] = useState({});
+  const [trainingsContent, setTrainingsContent] = useState({});
   const [blogs, setBlogs] = useState([]);
   const [courses, setCourses] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
@@ -275,6 +278,53 @@ export default function AdminDashboard() {
       } else {
         console.log('No home content found');
         setHomeContent({});
+      }
+
+      // Fetch about content
+      const aboutDoc = await getDoc(doc(db, 'content', 'about'));
+      if (aboutDoc.exists()) {
+        setAboutContent(aboutDoc.data());
+        console.log('About content loaded');
+      } else {
+        console.log('About content not found, initializing...');
+        const defaultAbout = {
+          hero_heading: "Creating Happy Leaders",
+          hero_subtitle: "Professor of Organizational Behavior at IIM Ahmedabad.",
+          bio_heading: "Bridging Engineering and Behavior",
+        };
+        await setDoc(doc(db, 'content', 'about'), defaultAbout);
+        setAboutContent(defaultAbout);
+      }
+
+      // Fetch research content
+      const researchDoc = await getDoc(doc(db, 'content', 'research'));
+      if (researchDoc.exists()) {
+        setResearchContent(researchDoc.data());
+        console.log('Research content loaded');
+      } else {
+        console.log('Research content not found, initializing...');
+        const defaultResearch = {
+          page_heading: "Research & Publications",
+          page_description: "Explore my academic contributions spanning leadership, organizational behavior, and management research.",
+        };
+        await setDoc(doc(db, 'content', 'research'), defaultResearch);
+        setResearchContent(defaultResearch);
+      }
+
+      // Fetch trainings content
+      const trainingsDoc = await getDoc(doc(db, 'content', 'trainings'));
+      if (trainingsDoc.exists()) {
+        setTrainingsContent(trainingsDoc.data());
+        console.log('Trainings content loaded');
+      } else {
+        console.log('Trainings content not found, initializing...');
+        const defaultTrainings = {
+          page_heading: "Executive Training Programs",
+          page_subtitle: "By Prof. Vishal Gupta",
+          page_description: "Transform your leadership journey with world-class executive education programs from IIM Ahmedabad",
+        };
+        await setDoc(doc(db, 'content', 'trainings'), defaultTrainings);
+        setTrainingsContent(defaultTrainings);
       }
 
       // Fetch blogs
@@ -728,6 +778,57 @@ export default function AdminDashboard() {
             }}
           >
             <FiImage /> <span>Training Logos</span>
+          </button>
+          <button
+            className="admin-tab"
+            onClick={() => setActiveTab('about')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'none',
+              borderBottom: activeTab === 'about' ? '3px solid #1a1a1a' : 'none',
+              fontWeight: activeTab === 'about' ? 600 : 400,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <FiUsers /> <span>About</span>
+          </button>
+          <button
+            className="admin-tab"
+            onClick={() => setActiveTab('research')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'none',
+              borderBottom: activeTab === 'research' ? '3px solid #1a1a1a' : 'none',
+              fontWeight: activeTab === 'research' ? 600 : 400,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <FiBookOpen /> <span>Research</span>
+          </button>
+          <button
+            className="admin-tab"
+            onClick={() => setActiveTab('trainings')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'none',
+              borderBottom: activeTab === 'trainings' ? '3px solid #1a1a1a' : 'none',
+              fontWeight: activeTab === 'trainings' ? 600 : 400,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <FiBriefcase /> <span>Trainings</span>
           </button>
         </div>
 
@@ -1309,6 +1410,189 @@ export default function AdminDashboard() {
                 />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* About Page Tab */}
+        {activeTab === 'about' && (
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>Edit About Page Content</h2>
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Hero Heading</label>
+                <input
+                  type="text"
+                  value={aboutContent.hero_heading || ''}
+                  onChange={(e) => setAboutContent({ ...aboutContent, hero_heading: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Bio Heading</label>
+                <input
+                  type="text"
+                  value={aboutContent.bio_heading || ''}
+                  onChange={(e) => setAboutContent({ ...aboutContent, bio_heading: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await updateDoc(doc(db, 'content', 'about'), aboutContent);
+                    setMessage({ text: 'About page updated successfully!', type: 'success' });
+                    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+                  } catch (error) {
+                    setMessage({ text: 'Error updating about page', type: 'error' });
+                    console.error(error);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#2A35CC',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                  opacity: saving ? 0.6 : 1
+                }}
+              >
+                {saving ? 'Saving...' : 'Save About Content'}
+              </button>
+            </div>
+            <p style={{ marginTop: '1rem', color: '#666', fontSize: '0.9rem' }}>
+              More detailed editing options coming soon. For now, you can edit the data directly in Firestore.
+            </p>
+          </div>
+        )}
+
+        {/* Research Page Tab */}
+        {activeTab === 'research' && (
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>Edit Research Page Content</h2>
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Page Heading</label>
+                <input
+                  type="text"
+                  value={researchContent.page_heading || ''}
+                  onChange={(e) => setResearchContent({ ...researchContent, page_heading: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Page Description</label>
+                <textarea
+                  value={researchContent.page_description || ''}
+                  onChange={(e) => setResearchContent({ ...researchContent, page_description: e.target.value })}
+                  rows={3}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await updateDoc(doc(db, 'content', 'research'), researchContent);
+                    setMessage({ text: 'Research page updated successfully!', type: 'success' });
+                    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+                  } catch (error) {
+                    setMessage({ text: 'Error updating research page', type: 'error' });
+                    console.error(error);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#2A35CC',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                  opacity: saving ? 0.6 : 1
+                }}
+              >
+                {saving ? 'Saving...' : 'Save Research Content'}
+              </button>
+            </div>
+            <p style={{ marginTop: '1rem', color: '#666', fontSize: '0.9rem' }}>
+              Publications, book chapters, and PhD students can be managed directly in Firestore. Full admin interface coming soon.
+            </p>
+          </div>
+        )}
+
+        {/* Trainings Page Tab */}
+        {activeTab === 'trainings' && (
+          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>Edit Trainings Page Content</h2>
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Page Heading</label>
+                <input
+                  type="text"
+                  value={trainingsContent.page_heading || ''}
+                  onChange={(e) => setTrainingsContent({ ...trainingsContent, page_heading: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Page Subtitle</label>
+                <input
+                  type="text"
+                  value={trainingsContent.page_subtitle || ''}
+                  onChange={(e) => setTrainingsContent({ ...trainingsContent, page_subtitle: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Page Description</label>
+                <textarea
+                  value={trainingsContent.page_description || ''}
+                  onChange={(e) => setTrainingsContent({ ...trainingsContent, page_description: e.target.value })}
+                  rows={3}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await updateDoc(doc(db, 'content', 'trainings'), trainingsContent);
+                    setMessage({ text: 'Trainings page updated successfully!', type: 'success' });
+                    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+                  } catch (error) {
+                    setMessage({ text: 'Error updating trainings page', type: 'error' });
+                    console.error(error);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#2A35CC',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                  opacity: saving ? 0.6 : 1
+                }}
+              >
+                {saving ? 'Saving...' : 'Save Trainings Content'}
+              </button>
+            </div>
+            <p style={{ marginTop: '1rem', color: '#666', fontSize: '0.9rem' }}>
+              Training programs can be managed in Firestore. Full editing interface coming soon.
+            </p>
           </div>
         )}
       </div>
