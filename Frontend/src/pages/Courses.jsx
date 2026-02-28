@@ -4,10 +4,11 @@ import { useFirestoreCollection } from '../hooks/useFirestoreCollection';
 import { where } from 'firebase/firestore';
 
 export default function Courses() {
+  // Consistent fade animation
   const fadeIn = {
-    initial: { opacity: 0.85, y: 8 },
+    initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.35 }
+    transition: { duration: 0.5, ease: "easeOut" }
   };
 
   // Fetch published courses from Firestore
@@ -22,11 +23,12 @@ export default function Courses() {
     return match ? match[1] : null;
   };
 
+  // Course card with consistent color and layout
   const CourseCard = ({ icon: Icon, title, description, link, linkText = "Access Course", badge, children }) => (
     <motion.div
       {...fadeIn}
       whileHover={{ y: -4 }}
-      className="bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all border border-gray-100"
+      className="bg-[#fafaf8] rounded-2xl p-8 shadow-md hover:shadow-xl transition-all border border-gray-200"
     >
       <div className="flex items-start gap-4 mb-4">
         <div className="p-3 bg-gradient-to-br from-[#ffcc00] to-[#f5b800] rounded-xl">
@@ -34,7 +36,7 @@ export default function Courses() {
         </div>
         <div className="flex-1">
           {badge && (
-            <span className="inline-block px-3 py-1 bg-[#fafaf8] text-xs font-['Inter'] font-semibold text-[#1a1a1a] rounded-full mb-2">
+            <span className="inline-block px-3 py-1 bg-[#fffbe6] text-xs font-['Inter'] font-semibold text-[#1a1a1a] rounded-full mb-2">
               {badge}
             </span>
           )}
@@ -43,13 +45,10 @@ export default function Courses() {
           </h3>
         </div>
       </div>
-      
-      <p className="text-gray-700 font-['Inter'] leading-relaxed mb-6">
+      <p className="text-gray-800 font-['Inter'] leading-relaxed mb-6">
         {description}
       </p>
-      
       {children}
-      
       {link && (
         <a
           href={link}
@@ -90,14 +89,14 @@ export default function Courses() {
   );
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-[#fafaf8] min-h-screen">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 px-6 lg:px-16 bg-gradient-to-b from-[#fafaf8] to-white">
+      <section className="pt-32 pb-16 px-6 lg:px-16 bg-gradient-to-b from-[#fafaf8] to-[#fffbe6]">
         <div className="max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0.85, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
+            initial={fadeIn.initial}
+            animate={fadeIn.animate}
+            transition={fadeIn.transition}
             className="text-center mb-12"
           >
             <div className="inline-block px-4 py-2 bg-[#ffcc00] bg-opacity-20 rounded-full mb-6">
@@ -108,7 +107,7 @@ export default function Courses() {
             <h1 className="text-5xl lg:text-7xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-6 leading-tight">
               Courses
             </h1>
-            <p className="text-xl lg:text-2xl font-['Inter'] text-gray-700 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl lg:text-2xl font-['Inter'] text-gray-800 max-w-3xl mx-auto leading-relaxed">
               Welcome to my learning hub for students, researchers, and practitioners. Explore courses on life skills, leadership, and research methods for your personal and professional journey.
             </p>
           </motion.div>
@@ -116,7 +115,7 @@ export default function Courses() {
       </section>
 
       {/* YouTube Channel */}
-      <section className="py-16 px-6 lg:px-16 bg-white">
+      <section className="py-16 px-6 lg:px-16 bg-[#fafaf8]">
         <div className="max-w-6xl mx-auto">
           <CourseCard
             icon={FiYoutube}
@@ -163,30 +162,27 @@ export default function Courses() {
                 Explore our curated collection of management and leadership courses
               </p>
             </motion.div>
-
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {courses.map((course, index) => {
                 const videoId = course.youtubeUrl ? extractVideoId(course.youtubeUrl) : null;
                 // Use custom thumbnail if available, otherwise YouTube thumbnail
                 const thumbnailUrl = course.thumbnail || 
                   (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null);
-                
                 return (
                   <motion.div
                     key={course.id}
-                    initial={{ opacity: 0.85, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: index * 0.06 }}
+                    initial={fadeIn.initial}
+                    animate={fadeIn.animate}
+                    transition={{ ...fadeIn.transition, delay: index * 0.06 }}
                     whileHover={{ y: -4 }}
-                    className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-100"
+                    className="bg-[#fffbe6] rounded-2xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200"
                   >
                     <h3 className="text-2xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-3">
                       {course.title}
                     </h3>
-                    <p className="text-gray-700 font-['Inter'] leading-relaxed mb-4">
+                    <p className="text-gray-800 font-['Inter'] leading-relaxed mb-4">
                       {course.description}
                     </p>
-                    
                     {thumbnailUrl && (
                       <div className="mb-4">
                         <a 
@@ -218,7 +214,6 @@ export default function Courses() {
                         </a>
                       </div>
                     )}
-
                     {course.youtubeUrl && (
                       <a
                         href={course.youtubeUrl}
@@ -239,7 +234,7 @@ export default function Courses() {
       ) : null}
 
       {/* Featured Courses Section */}
-      <section className="py-16 px-6 lg:px-16 bg-[#fafaf8]">
+      <section className="py-16 px-6 lg:px-16 bg-[#fffbe6]">
         <div className="max-w-6xl mx-auto">
           <motion.h2
             {...fadeIn}
@@ -253,7 +248,6 @@ export default function Courses() {
           >
             Comprehensive online courses combining science, practice, and ancient wisdom
           </motion.p>
-
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Happiness Course */}
             <CourseCard
@@ -279,7 +273,6 @@ export default function Courses() {
                 </div>
               </div>
             </CourseCard>
-
             {/* Leadership Skills Course */}
             <CourseCard
               icon={FiUsers}
@@ -309,7 +302,7 @@ export default function Courses() {
       </section>
 
       {/* Research Methods Section */}
-      <section className="py-16 px-6 lg:px-16 bg-white">
+      <section className="py-16 px-6 lg:px-16 bg-[#fafaf8]">
         <div className="max-w-6xl mx-auto">
           <motion.div {...fadeIn} className="text-center mb-12">
             <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-4">
@@ -319,7 +312,6 @@ export default function Courses() {
               Comprehensive lecture series on advanced research methodologies for scholars and practitioners
             </p>
           </motion.div>
-
           <div className="space-y-12">
             {/* Multilevel Modeling */}
             <div>
@@ -332,7 +324,7 @@ export default function Courses() {
                     Multilevel Modeling
                   </h3>
                 </div>
-                <p className="text-gray-700 font-['Inter'] leading-relaxed mb-4">
+                <p className="text-gray-800 font-['Inter'] leading-relaxed mb-4">
                   Multilevel models (also known as hierarchical linear models, linear mixed-effect model, mixed models, nested data models, or random-effects models) are statistical models of parameters that vary at more than one level. These models are particularly appropriate for research designs where data for participants are organized at more than one level (e.g., employees nested under team leaders).
                 </p>
                 <a
@@ -346,7 +338,6 @@ export default function Courses() {
                 </a>
               </motion.div>
             </div>
-
             {/* Covariance-Based SEM */}
             <div>
               <motion.div {...fadeIn} className="mb-6">
@@ -358,7 +349,7 @@ export default function Courses() {
                     Covariance-Based SEM
                   </h3>
                 </div>
-                <p className="text-gray-700 font-['Inter'] leading-relaxed mb-4">
+                <p className="text-gray-800 font-['Inter'] leading-relaxed mb-4">
                   Structural Equation Modeling (SEM) is a statistical methodology widely used in social sciences research. SEM allows researchers to test complex models with multiple pathways, model latent variables with multiple indicators, investigate mediation and moderation systematically, and adjust for measurement error in predictor variables. This series provides a general introduction to CB-SEM using AMOS software.
                 </p>
                 <p className="text-gray-600 font-['Inter'] text-sm italic mb-4">
@@ -366,7 +357,6 @@ export default function Courses() {
                 </p>
               </motion.div>
             </div>
-
             {/* Grid of Research Topics */}
             <div className="grid md:grid-cols-2 gap-6">
               <ResearchLecture
@@ -374,13 +364,11 @@ export default function Courses() {
                 description="Introduction to central concepts of measurement covering test construction, item analysis, reliability, validity, and measurement error. Includes hands-on sessions with SPSS and AMOS."
                 driveLink="https://drive.google.com/drive/folders/"
               />
-
               <ResearchLecture
                 title="Conditional Process Analysis"
                 description="A comprehensive three-video series explaining mediation, moderation, and conditional process analysis with practical dataset examples."
                 driveLink="https://drive.google.com/file/d/1Ih2WCnyC64mESIKByOIOYAmkCioAGiTO/view?usp=sharing"
               />
-
               <ResearchLecture
                 title="Manuscript Writing & Publishing"
                 description="A 16-session series covering elements of manuscript writing and strategies for high-quality academic publishing. Includes instruction files and supplementary readings."

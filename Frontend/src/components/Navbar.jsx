@@ -53,7 +53,7 @@ export default function Navbar() {
     { name: 'Courses', path: '/courses' },
     { name: 'Trainings', path: '/trainings' },
     { name: 'Digital Avatar', hash: '#contact' },
-    { name: 'Newsletter', hash: '#newsletter' },
+    { name: 'Blog', hash: '#blog' },
   ];
 
   const scrollToSection = (hash) => {
