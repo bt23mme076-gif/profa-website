@@ -19,11 +19,11 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } }
 };
 const fadeInLeft = {
-  hidden: { opacity: 0, x: -50 },
+  hidden: { opacity: 0, x: 0 },
   visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
 };
 const fadeInRight = {
-  hidden: { opacity: 0, x: 50 },
+  hidden: { opacity: 0, x: 0 },
   visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
 };
 const staggerContainer = {
@@ -31,56 +31,6 @@ const staggerContainer = {
   visible: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.05 } }
 };
 const viewportOptions = { once: true, margin: '0px 0px -60px 0px', amount: 0.15 };
-
-// ─── Styles to remove extra space ─────────────────────────────────────────────
-const styles = {
-  container: {
-    padding: '1rem',
-    maxWidth: '100%',
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center', // Center align content
-  },
-  heroSection: {
-    padding: '1rem',
-    margin: '0',
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center', // Center align hero section
-  },
-  heroTitle: {
-    margin: '0',
-    padding: '0',
-    fontSize: '2rem',
-    lineHeight: '1.2',
-    textAlign: 'center',
-  },
-  heroSubtitle: {
-    margin: '0.5rem 0',
-    fontSize: '1.2rem',
-    lineHeight: '1.5',
-    textAlign: 'center',
-  },
-  heroDescription: {
-    margin: '0.5rem 0',
-    fontSize: '1rem',
-    lineHeight: '1.5',
-    textAlign: 'center',
-  },
-  button: {
-    marginTop: '1rem',
-    padding: '0.75rem 1.5rem',
-    fontSize: '1rem',
-    borderRadius: '8px',
-    backgroundColor: '#007BFF',
-    color: '#fff',
-    border: 'none',
-    cursor: 'pointer',
-    textAlign: 'center',
-  },
-};
 
 export default function Home() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -221,37 +171,39 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           1. HERO
       ══════════════════════════════════════════════════════ */}
-      <section className="min-h-screen grid lg:grid-cols-2 items-center px-4 sm:px-6 lg:px-16 py-8 sm:py-12 bg-gradient-to-br from-white to-[#f0f1ff] relative overflow-hidden" style={{ maxWidth: '100vw', boxSizing: 'border-box' }}>
-        {/* Decorative orb */}
+<section 
+  className="min-h-screen grid lg:grid-cols-2 items-center px-4 sm:px-6 lg:px-16 py-8 sm:py-12 lg:py-16 bg-gradient-to-br from-white to-[#f0f1ff] relative" 
+  style={{ maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden' }}
+>        {/* Decorative orb */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#3333FF]/5 rounded-full blur-3xl pointer-events-none -translate-y-1/4 translate-x-1/4" />
 
         {/* Left: Text */}
-        <div className="space-y-7 max-w-2xl relative z-10" style={{ paddingLeft: '0', paddingRight: '0.5rem', boxSizing: 'border-box', overflow: 'hidden' }}>
+        <div className="space-y-4 sm:space-y-6 max-w-2xl relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 45 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="w-20 h-1 bg-[#FF6600] mb-6 rounded-full" />
+            <div className="w-16 sm:w-20 h-1 bg-[#FF6600] mb-4 sm:mb-6 rounded-full" />
             <EditableText
               field="hero_greeting"
               defaultValue={data.hero_greeting}
-              className="text-lg font-['Inter'] text-gray-600 mb-4 block"
+              className="text-base sm:text-lg font-['Inter'] text-gray-600 mb-2 sm:mb-4 block"
             />
             <EditableText
               field="hero_name"
               defaultValue={data.hero_name}
-              className="text-4xl sm:text-5xl lg:text-7xl font-['Playfair_Display'] font-bold text-[#000000] leading-tight mb-4 sm:mb-6 block"
+              className="text-3xl sm:text-5xl lg:text-7xl font-['Playfair_Display'] font-bold text-[#000000] leading-tight mb-2 sm:mb-4 lg:mb-6 block"
             />
             <EditableText
               field="hero_subtitle"
               defaultValue={data.hero_subtitle}
-              className="text-lg sm:text-xl lg:text-2xl font-['Playfair_Display'] text-[#000000] font-semibold mb-6 sm:mb-8 block"
+              className="text-base sm:text-xl lg:text-2xl font-['Playfair_Display'] text-[#000000] font-semibold mb-3 sm:mb-6 lg:mb-8 block"
             />
             <EditableText
               field="hero_description"
               defaultValue={data.hero_description}
-              className="text-lg font-['Inter'] text-gray-600 leading-relaxed block"
+              className="text-sm sm:text-base lg:text-lg font-['Inter'] text-gray-600 leading-relaxed block"
               multiline={true}
             />
           </motion.div>
@@ -279,7 +231,7 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.95, x: 30 }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mt-12 lg:mt-0 z-10"
+          className="relative mt-8 sm:mt-12 lg:mt-0 z-10"
         >
           <div className="aspect-[3/4] max-w-lg mx-auto lg:ml-auto rounded-2xl overflow-hidden shadow-2xl bg-gray-200 border-4 border-[#FF6600]">
             <img
@@ -295,7 +247,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           2. COURSES
       ══════════════════════════════════════════════════════ */}
-      <section id="courses" className="py-16 px-6 lg:px-16 bg-white">
+      <section id="courses" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-16 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
             className="text-center mb-12"
@@ -307,7 +259,7 @@ export default function Home() {
             <EditableText
               field="courses_heading"
               defaultValue={data.courses_heading}
-              className="text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] mb-4 block"
+              className="text-3xl sm:text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] mb-4 block"
             />
             <div className="w-24 h-1 bg-[#3333FF] rounded-full mx-auto" />
           </motion.div>
@@ -411,7 +363,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           3. BLOGS
       ══════════════════════════════════════════════════════ */}
-      <section id="blog" className="py-16 px-6 lg:px-16 bg-[#f0f1ff]">
+      <section id="blog" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-16 bg-[#f0f1ff]">
         <div className="max-w-7xl mx-auto">
 
           {/* Header */}
@@ -422,7 +374,7 @@ export default function Home() {
                 <EditableText
                   field="blog_heading"
                   defaultValue={data.blog_heading}
-                  className="text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] block"
+                  className="text-3xl sm:text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] block"
                 />
                 <div className="w-24 h-1 bg-[#3333FF] rounded-full mt-4" />
               </div>
@@ -435,7 +387,7 @@ export default function Home() {
             <div className="w-8 h-8 rounded-full bg-[#FF6600] flex items-center justify-center flex-shrink-0">
               <FiBookOpen size={14} className="text-white" />
             </div>
-            <h3 className="text-xl font-['Playfair_Display'] font-bold text-[#111111]">Recent Blogs</h3>
+            <h3 className="text-lg sm:text-xl font-['Playfair_Display'] font-bold text-[#111111]">Recent Blogs</h3>
             <div className="h-px flex-1 bg-gray-200" />
           </motion.div>
 
@@ -512,13 +464,13 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           4. TESTIMONIALS
       ══════════════════════════════════════════════════════ */}
-      <section className="py-16 bg-white">
+      <section className="py-12 sm:py-16 bg-white relative">
         {/* Decorative quote mark */}
         <div className="absolute top-4 left-6 text-[160px] font-['Playfair_Display'] text-[#3333FF]/6 leading-none select-none pointer-events-none">"</div>
         <div className="absolute bottom-0 right-6 text-[160px] font-['Playfair_Display'] text-[#3333FF]/6 leading-none select-none pointer-events-none rotate-180">"</div>
 
         <div
-          className="max-w-2xl mx-auto px-6 relative"
+          className="max-w-2xl mx-auto px-4 sm:px-6 relative"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
@@ -530,7 +482,7 @@ export default function Home() {
               <FiStar className="text-[#FF6600]" size={14} />
               <div className="h-px w-10 bg-[#FF6600]" />
             </div>
-            <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#111111] mb-2">What People Say</h2>
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#111111] mb-2">What People Say</h2>
             <div className="w-24 h-1 bg-[#3333FF] rounded-full mx-auto" />
           </motion.div>
 
@@ -555,8 +507,8 @@ export default function Home() {
                   className="w-full"
                 >
                   {/* Card */}
-                  <div className="bg-white rounded-xl shadow-lg px-8 py-8 border-l-4 border-[#3333FF] mb-6">
-                    <p className="text-base lg:text-lg font-['Playfair_Display'] italic text-gray-700 leading-relaxed mb-6">
+                  <div className="bg-white rounded-xl shadow-lg px-5 sm:px-8 py-6 sm:py-8 border-l-4 border-[#3333FF] mb-6">
+                    <p className="text-sm sm:text-base lg:text-lg font-['Playfair_Display'] italic text-gray-700 leading-relaxed mb-6">
                       "{testimonials[currentSlide]?.quote}"
                     </p>
                     <div className="h-px bg-gray-100 mb-5" />
@@ -609,22 +561,22 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           5. TRAININGS DELIVERED
       ══════════════════════════════════════════════════════ */}
-      <section className="py-16 bg-[#f0f1ff]">
+      <section className="py-12 sm:py-16 bg-[#f0f1ff]">
         <motion.div
-          className="max-w-7xl mx-auto px-6 text-center mb-12"
+          className="max-w-7xl mx-auto px-4 sm:px-6 text-center mb-12"
           initial="hidden" whileInView="visible" viewport={viewportOptions} variants={fadeInUp}
         >
-          <h2 className="text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] mb-4">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] mb-4">
             Trainings Delivered For
           </h2>
           <div className="w-24 h-1 bg-[#FF6600] rounded-full mx-auto mb-6" />
-          <p className="text-gray-600 font-['Inter'] max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-600 font-['Inter'] max-w-3xl mx-auto">
             From leading academic institutions to global corporations, Prof. Gupta has delivered transformative training programs.
           </p>
         </motion.div>
 
         <motion.div
-          className="max-w-7xl mx-auto px-6"
+          className="max-w-7xl mx-auto px-4 sm:px-6"
           initial="hidden" whileInView="visible" viewport={viewportOptions} variants={staggerContainer}
         >
           {trainingLogos && trainingLogos.length > 0 ? (
@@ -655,14 +607,14 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           6. BOOKS
       ══════════════════════════════════════════════════════ */}
-      <section id="books" className="py-16 px-6 lg:px-16 bg-white">
+      <section id="books" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-16 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div className="mb-12"
             initial="hidden" whileInView="visible" viewport={viewportOptions} variants={fadeInUp}>
             <EditableText
               field="books_heading"
               defaultValue={data.books_heading}
-              className="text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] text-center block mb-4"
+              className="text-3xl sm:text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] text-center block mb-4"
             />
             <div className="w-24 h-1 bg-[#3333FF] rounded-full mx-auto" />
           </motion.div>
@@ -684,7 +636,7 @@ export default function Home() {
                     onError={(e) => { e.target.src = 'https://via.placeholder.com/600x800/e6e8ff/2A35CC?text=Book'; }} />
                 </div>
                 <EditableText field={book.tf} defaultValue={data[book.tf]}
-                  className="text-2xl font-['Playfair_Display'] font-bold text-[#111111] mb-3 block" />
+                  className="text-xl sm:text-2xl font-['Playfair_Display'] font-bold text-[#111111] mb-3 block" />
                 <EditableText field={book.df} defaultValue={data[book.df]}
                   className="text-sm font-['Inter'] text-gray-600 mb-4 leading-relaxed block" multiline={true} />
                 <motion.a href="#"
@@ -703,7 +655,7 @@ export default function Home() {
       ══════════════════════════════════════════════════════ */}
       <section id="contact" className="grid lg:grid-cols-2 min-h-[600px]">
         <motion.div
-          className="bg-[#f0f1ff] p-12 lg:p-20 flex flex-col justify-center items-start order-2 lg:order-1 relative overflow-hidden border-l-4 border-[#FF6600]"
+          className="bg-[#f0f1ff] p-6 sm:p-12 lg:p-20 flex flex-col justify-center items-start order-2 lg:order-1 relative overflow-hidden border-l-4 border-[#FF6600]"
           initial="hidden" whileInView="visible" viewport={viewportOptions} variants={fadeInLeft}
         >
           <div className="absolute top-0 left-0 w-64 h-64 bg-[#FF6600]/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
@@ -711,12 +663,12 @@ export default function Home() {
           <EditableText
             field="speaking_heading"
             defaultValue={data.speaking_heading}
-            className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#111111] mb-6 leading-tight block relative z-10"
+            className="text-2xl sm:text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#111111] mb-6 leading-tight block relative z-10"
           />
           <EditableText
             field="speaking_description"
             defaultValue={data.speaking_description}
-            className="text-lg font-['Inter'] text-gray-700 mb-10 max-w-lg leading-relaxed block relative z-10"
+            className="text-sm sm:text-base lg:text-lg font-['Inter'] text-gray-700 mb-10 max-w-lg leading-relaxed block relative z-10"
             multiline={true}
           />
           <motion.a
@@ -746,7 +698,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           8. NEWSLETTER
       ══════════════════════════════════════════════════════ */}
-      <section id="newsletter" className="py-16 px-6 lg:px-16 bg-[#ffffff]">
+      <section id="newsletter" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-16 bg-[#ffffff]">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-start">
           <motion.div
             initial="hidden" whileInView="visible" viewport={viewportOptions} variants={fadeInLeft}
@@ -755,7 +707,7 @@ export default function Home() {
             <EditableText
                 field="newsletter_heading"
                 defaultValue={data.newsletter_heading}
-                className="text-5xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#111111] leading-tight block"
+                className="text-3xl sm:text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#111111] leading-tight block"
             />
           </motion.div>
 
@@ -764,7 +716,7 @@ export default function Home() {
             <EditableText
               field="newsletter_description"
               defaultValue={data.newsletter_description}
-              className="text-lg font-['Inter'] text-gray-700 leading-relaxed block"
+              className="text-sm sm:text-base lg:text-lg font-['Inter'] text-gray-700 leading-relaxed block"
               multiline={true}
             />
             <form onSubmit={handleNewsletterSubmit} className="space-y-4">
