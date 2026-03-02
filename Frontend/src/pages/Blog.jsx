@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection';
 import { useAuth } from '../context/AuthContext';
@@ -28,7 +28,9 @@ export default function Blog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [openBlogId, setOpenBlogId] = useState(null);
 
-  const { data: blogsRaw, loading: blogsLoading } = useFirestoreCollection('blogs', []);
+  // ✅ Real-time listener - no refresh key needed!
+  const { data: blogsRaw, loading: blogsLoading } = useFirestoreCollection('blogs', [], true);
+
   const blogs = (blogsRaw || []).filter(b => b.published);
 
   // ── Filters ───────────────────────────────────────────────────────────────
@@ -191,8 +193,8 @@ export default function Blog() {
                                 className="w-full min-h-[120px]"
                                 placeholder="Enter blog content..."
                                 modalClassName="rounded-2xl shadow-2xl border border-gray-100 p-4 bg-white"
-                            />
-                          ) : blog.content || 'No description available.'}
+                              />
+                            ) : blog.content || 'No description available.'}
                           </div>
                         )}
                       </div>

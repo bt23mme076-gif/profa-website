@@ -2,42 +2,22 @@ import { db } from '../firebase/config';
 import { doc, setDoc } from 'firebase/firestore';
 
 const aboutContent = {
-  // Hero Section
-  hero_heading: "Creating Happy Leaders",
-  hero_subtitle: "Professor of Organizational Behavior at IIM Ahmedabad.",
-  hero_description: "Researcher, Author, and Leadership Coach bridging engineering precision with behavioral science.",
-  hero_image: "https://i.ibb.co/WvvwbZBt/prof-gupta-jpg.png",
-  hero_linkedin: "https://www.linkedin.com/in/gvishal/",
+  // Hero Section with nested structure
+  hero: {
+    mainHeading: "Creating Happy Leaders",
+    subtitle: "Professor of Organizational Behavior at IIM Ahmedabad.",
+    description: "Researcher, Author, and Leadership Coach bridging engineering precision with behavioral science.",
+    profileImage: "https://i.ibb.co/WvvwbZBt/prof-gupta-jpg.png",
+    linkedinUrl: "https://www.linkedin.com/in/gvishal/"
+  },
   
-  // Achievements
-  achievements: [
-    {
-      id: 1,
-      icon: "award",
-      title: "Academic Leader",
-      description: "President of Indian Academy of Management (2020-2022). Affiliate of Academy of Management, US."
-    },
-    {
-      id: 2,
-      icon: "briefcase",
-      title: "Corporate Consultant",
-      description: "Training leaders at NHPC, Taj Group, L&T, DRDO, and consulting for BSNL, Tilburg University, Aston Business School."
-    },
-    {
-      id: 3,
-      icon: "book",
-      title: "Published Author",
-      description: "'First Among Equals' (2020) & 'Demystifying Leadership: Unveiling the Mahabharata Code' (2021)."
-    }
-  ],
-  
-  // Journey/Biography
-  bio_heading: "Bridging Engineering and Behavior",
-  bio_paragraphs: [
-    "I obtained my doctorate in Human Resource Management from the Indian Institute of Management Lucknow in 2013. I hold a Bachelor's degree in Electrical and Electronics Engineering from BITS-Pilani, Pilani Campus, India.",
-    "Prior to joining IIMA, I worked as a Hardware Design Engineer with ST Microelectronics Pvt Ltd., Greater Noida and with Infineon Technologies AG, Munich, Germany where I was involved in the design of high-performance Application-Specific Integrated Circuits (ASICs).",
-    "This unique blend of technical precision and behavioral insight fuels my research in leadership development, mindfulness, emotional intelligence, organization development, and R&D management."
-  ],
+  // Journey/Biography Section with nested structure
+  journey: {
+    heading: "Bridging Engineering and Behavior",
+    paragraph1: "I obtained my doctorate in Human Resource Management from the Indian Institute of Management Lucknow in 2013. I hold a Bachelor's degree in Electrical and Electronics Engineering from BITS-Pilani, Pilani Campus, India.",
+    paragraph2: "Prior to joining IIMA, I worked as a Hardware Design Engineer with ST Microelectronics Pvt Ltd., Greater Noida and with Infineon Technologies AG, Munich, Germany where I was involved in the design of high-performance Application-Specific Integrated Circuits (ASICs).",
+    paragraph3: "This unique blend of technical precision and behavioral insight fuels my research in leadership development, mindfulness, emotional intelligence, organization development, and R&D management."
+  },
   
   // Awards
   awards: [

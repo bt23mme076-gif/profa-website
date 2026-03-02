@@ -1,7 +1,55 @@
 import { motion } from 'framer-motion';
-import { FiAward, FiUsers, FiBookOpen, FiBriefcase, FiTrendingUp, FiHeart } from 'react-icons/fi';
+import { FiAward, FiUsers, FiBookOpen, FiBriefcase, FiTrendingUp, FiHeart, FiEdit2, FiUpload } from 'react-icons/fi';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useFirestoreDoc } from '../hooks/useFirestoreDoc';
+import EditableText from '../components/EditableText';
+import { uploadToCloudinary } from '../utils/cloudinaryUpload';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 export default function About() {
+  const { isAdmin } = useAuth();
+  const [uploading, setUploading] = useState(false);
+
+  // Define default data structure for About page
+  const defaultAboutData = {
+    hero: {
+      mainHeading: "Creating Happy Leaders",
+      subtitle: "Professor of Organizational Behavior at IIM Ahmedabad.",
+      description: "Researcher, Author, and Leadership Coach bridging engineering precision with behavioral science.",
+      linkedinUrl: "https://www.linkedin.com/in/gvishal/",
+      profileImage: "https://i.ibb.co/WvvwbZBt/prof-gupta-jpg.png"
+    },
+    journey: {
+      heading: "Bridging Engineering and Behavior",
+      paragraph1: "I obtained my doctorate in Human Resource Management from the Indian Institute of Management Lucknow in 2013. I hold a Bachelor's degree in Electrical and Electronics Engineering from BITS-Pilani, Pilani Campus, India.",
+      paragraph2: "Prior to joining IIMA, I worked as a Hardware Design Engineer with ST Microelectronics Pvt Ltd., Greater Noida and with Infineon Technologies AG, Munich, Germany where I was involved in the design of high-performance Application-Specific Integrated Circuits (ASICs).",
+      paragraph3: "This unique blend of technical precision and behavioral insight fuels my research in leadership development, mindfulness, emotional intelligence, organization development, and R&D management."
+    }
+  };
+
+  // Fetch About page data from Firestore
+  const { data: aboutData, loading } = useFirestoreDoc('content', 'about', defaultAboutData);
+
+  // Handle profile image upload
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const imageUrl = await uploadToCloudinary(file, 'about');
+      const docRef = doc(db, 'content', 'about');
+      await updateDoc(docRef, { 'hero.profileImage': imageUrl });
+      console.log('✅ Profile image uploaded:', imageUrl);
+    } catch (error) {
+      console.error('❌ Image upload failed:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
     visible: { 
@@ -75,6 +123,14 @@ export default function About() {
     }
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white">
       {/* Hero Section - The Statement */}
@@ -88,16 +144,35 @@ export default function About() {
         >
           <div className="w-20 h-1 bg-[#f97316] rounded-full"></div>
           <h1 className="text-6xl lg:text-7xl font-['Playfair_Display'] font-bold text-[#1a1a1a] leading-tight">
-            Creating Happy Leaders
+            <EditableText
+              collection="content"
+              docId="about"
+              field="hero.mainHeading"
+              defaultValue={aboutData?.hero?.mainHeading || "Creating Happy Leaders"}
+              className="text-6xl lg:text-7xl font-['Playfair_Display'] font-bold text-[#1a1a1a] leading-tight"
+            />
           </h1>
           <p className="text-2xl lg:text-3xl font-['Playfair_Display'] text-[#2A35CC] font-semibold">
-            Professor of Organizational Behavior at IIM Ahmedabad.
+            <EditableText
+              collection="content"
+              docId="about"
+              field="hero.subtitle"
+              defaultValue={aboutData?.hero?.subtitle || "Professor of Organizational Behavior at IIM Ahmedabad."}
+              className="text-2xl lg:text-3xl font-['Playfair_Display'] text-[#2A35CC] font-semibold"
+            />
           </p>
           <p className="text-xl font-['Inter'] text-gray-600 leading-relaxed">
-            Researcher, Author, and Leadership Coach bridging engineering precision with behavioral science.
+            <EditableText
+              collection="content"
+              docId="about"
+              field="hero.description"
+              defaultValue={aboutData?.hero?.description || "Researcher, Author, and Leadership Coach bridging engineering precision with behavioral science."}
+              className="text-xl font-['Inter'] text-gray-600 leading-relaxed"
+              multiline
+            />
           </p>
           <a 
-            href="https://www.linkedin.com/in/gvishal/" 
+            href={aboutData?.hero?.linkedinUrl || "https://www.linkedin.com/in/gvishal/"} 
             target="_blank" 
             rel="noopener noreferrer"
             className="inline-block bg-[#2A35CC] hover:bg-[#1f2a99] text-white px-8 py-4 rounded-lg font-['Inter'] font-bold transition-all shadow-lg hover:shadow-xl"
@@ -113,15 +188,30 @@ export default function About() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative mt-12 lg:mt-0"
         >
-          <div className="aspect-[3/4] max-w-lg mx-auto lg:ml-auto rounded-3xl overflow-hidden shadow-2xl bg-gray-200 border-4 border-[#2A35CC]">
+          <div className="aspect-[3/4] max-w-lg mx-auto lg:ml-auto rounded-3xl overflow-hidden shadow-2xl bg-gray-200 border-4 border-[#2A35CC] relative group">
             <img 
-              src="https://i.ibb.co/WvvwbZBt/prof-gupta-jpg.png"
+              src={aboutData?.hero?.profileImage || "https://i.ibb.co/WvvwbZBt/prof-gupta-jpg.png"}
               alt="Prof. Vishal Gupta" 
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.src = "https://via.placeholder.com/800x1000/cccccc/333333?text=Prof.+Vishal+Gupta";
               }}
             />
+            {isAdmin && (
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <label className="cursor-pointer bg-white text-[#2A35CC] px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-100 transition-all shadow-lg">
+                  <FiUpload />
+                  {uploading ? 'Uploading...' : 'Change Photo'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+              </div>
+            )}
           </div>
         </motion.div>
       </section>
@@ -160,18 +250,45 @@ export default function About() {
             className="text-center space-y-8"
           >
             <h2 className="text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#1a1a1a]">
-              Bridging Engineering and Behavior
+              <EditableText
+                collection="content"
+                docId="about"
+                field="journey.heading"
+                defaultValue={aboutData?.journey?.heading || "Bridging Engineering and Behavior"}
+                className="text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#1a1a1a]"
+              />
             </h2>
             <div className="w-24 h-1 bg-[#f97316] rounded-full mx-auto"></div>
             <div className="space-y-6 text-left">
               <p className="text-xl font-['Inter'] text-gray-700 leading-relaxed">
-                I obtained my doctorate in <span className="font-semibold text-[#2A35CC]">Human Resource Management</span> from the Indian Institute of Management Lucknow in 2013. I hold a Bachelor's degree in <span className="font-semibold text-[#2A35CC]">Electrical and Electronics Engineering</span> from BITS-Pilani, Pilani Campus, India.
+                <EditableText
+                  collection="content"
+                  docId="about"
+                  field="journey.paragraph1"
+                  defaultValue={aboutData?.journey?.paragraph1 || "I obtained my doctorate in Human Resource Management from the Indian Institute of Management Lucknow in 2013. I hold a Bachelor's degree in Electrical and Electronics Engineering from BITS-Pilani, Pilani Campus, India."}
+                  className="text-xl font-['Inter'] text-gray-700 leading-relaxed"
+                  multiline
+                />
               </p>
               <p className="text-xl font-['Inter'] text-gray-700 leading-relaxed">
-                Prior to joining IIMA, I worked as a <span className="font-semibold text-[#f97316]">Hardware Design Engineer</span> with ST Microelectronics Pvt Ltd., Greater Noida and with Infineon Technologies AG, Munich, Germany where I was involved in the design of high-performance Application-Specific Integrated Circuits (ASICs).
+                <EditableText
+                  collection="content"
+                  docId="about"
+                  field="journey.paragraph2"
+                  defaultValue={aboutData?.journey?.paragraph2 || "Prior to joining IIMA, I worked as a Hardware Design Engineer with ST Microelectronics Pvt Ltd., Greater Noida and with Infineon Technologies AG, Munich, Germany where I was involved in the design of high-performance Application-Specific Integrated Circuits (ASICs)."}
+                  className="text-xl font-['Inter'] text-gray-700 leading-relaxed"
+                  multiline
+                />
               </p>
               <p className="text-xl font-['Inter'] text-gray-700 leading-relaxed">
-                This unique blend of <span className="font-semibold">technical precision and behavioral insight</span> fuels my research in leadership development, mindfulness, emotional intelligence, organization development, and R&D management.
+                <EditableText
+                  collection="content"
+                  docId="about"
+                  field="journey.paragraph3"
+                  defaultValue={aboutData?.journey?.paragraph3 || "This unique blend of technical precision and behavioral insight fuels my research in leadership development, mindfulness, emotional intelligence, organization development, and R&D management."}
+                  className="text-xl font-['Inter'] text-gray-700 leading-relaxed"
+                  multiline
+                />
               </p>
             </div>
           </motion.div>

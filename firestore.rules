@@ -6,7 +6,7 @@ service cloud.firestore {
     function isAdmin() {
       // Replace with your actual admin email
       return request.auth != null && 
-             request.auth.token.email == 'jatin@example.com';
+             request.auth.token.email == 'vishallko31@gmail.com';
     }
     
     // ========== CONTENT COLLECTION ==========
@@ -37,6 +37,12 @@ service cloud.firestore {
     
     // ========== COURSES (Future Feature) ==========
     match /courses/{courseId} {
+      allow read: true;
+      allow write, update, delete: if isAdmin();
+    }
+    
+    // ========== BOOKS ==========
+    match /books/{bookId} {
       allow read: true;
       allow write, update, delete: if isAdmin();
     }

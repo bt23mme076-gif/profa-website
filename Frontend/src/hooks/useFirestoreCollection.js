@@ -1,30 +1,58 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase/config';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, onSnapshot } from 'firebase/firestore';
 
-export function useFirestoreCollection(collectionName, constraints = []) {
+export function useFirestoreCollection(collectionName, constraints = [], realtime = false) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log(`${realtime ? 'Setting up real-time listener' : 'Fetching'} for ${collectionName}...`);
+    
+    const collectionRef = collection(db, collectionName);
+    let q = collectionRef;
+    if (constraints.length > 0) {
+      q = query(collectionRef, ...constraints);
+    }
+
+    // Real-time listener
+    if (realtime) {
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const items = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          console.log(`✅ Real-time update for ${collectionName}:`, items.length, 'items');
+          setData(items);
+          setLoading(false);
+          setError(null);
+        },
+        (err) => {
+          console.error(`❌ Real-time listener error for ${collectionName}:`, err);
+          setError(err.message);
+          setLoading(false);
+        }
+      );
+
+      // Cleanup function
+      return () => {
+        console.log(`🔌 Unsubscribing from ${collectionName}`);
+        unsubscribe();
+      };
+    }
+
+    // One-time fetch
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log(`Fetching ${collectionName}...`);
-        const collectionRef = collection(db, collectionName);
-        
-        let q = collectionRef;
-        if (constraints.length > 0) {
-          q = query(collectionRef, ...constraints);
-        }
-
         const snapshot = await getDocs(q);
         const items = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-
         console.log(`${collectionName} fetched:`, items.length, 'items');
         setData(items);
         setError(null);
@@ -37,7 +65,7 @@ export function useFirestoreCollection(collectionName, constraints = []) {
     };
 
     fetchData();
-  }, [collectionName, JSON.stringify(constraints)]);
+  }, [collectionName, JSON.stringify(constraints), realtime]);
 
   return { data, loading, error };
 }

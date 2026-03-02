@@ -30,6 +30,8 @@ export const uploadToCloudinary = async (file, type = 'general') => {
     testimonials: 'iima-courses/testimonials',
     logos: 'iima-courses/logos',
     home: 'iima-courses/home',
+    books: 'iima-courses/books',
+    about: 'iima-courses/about',
     general: 'iima-courses'
   };
 

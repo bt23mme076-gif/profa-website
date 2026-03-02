@@ -3,6 +3,7 @@ import { getFirestore } from 'firebase/firestore';
 import { initializeAboutContent } from './initializeAboutContent.js';
 import { initializeResearchContent } from './initializeResearchContent.js';
 import { initializeTrainingsContent } from './initializeTrainingsContent.js';
+import { initializeBooksContent } from './initializeBooksContent.js';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -54,6 +55,13 @@ async function initializeAllContent() {
     console.log('-----------------');
     const trainingsResult = await initializeTrainingsContent();
     console.log(trainingsResult.success ? '✓ Success' : '✗ Failed:', trainingsResult.message || trainingsResult.error);
+    console.log('');
+    
+    // Initialize Books content
+    console.log('4. Books Page');
+    console.log('-------------');
+    const booksResult = await initializeBooksContent();
+    console.log(booksResult.success ? '✓ Success' : '✗ Failed:', booksResult.message || booksResult.error);
     console.log('');
     
     console.log('====================================');
