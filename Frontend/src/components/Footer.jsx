@@ -64,9 +64,7 @@ export default function Footer() {
             <div className="flex gap-4 justify-center md:justify-start flex-wrap">
               {[
                 { icon: <FiYoutube />, href: "https://www.youtube.com/@ProfVishalGupta" },
-                { icon: <FiFacebook />, href: "https://facebook.com/@profvishalgupta" },
                 { icon: <FiTwitter />, href: "https://twitter.com/@profvishalgupta" },
-                { icon: <FiInstagram />, href: "https://instagram.com/@profvishalgupta" },
                 { icon: <FiLinkedin />, href: "https://www.linkedin.com/in/gvishal/" }
               ].map((social, idx) => (
                 <a key={idx} href={social.href} target="_blank" rel="noopener noreferrer" 
