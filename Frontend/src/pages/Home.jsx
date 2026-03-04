@@ -607,43 +607,76 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           6. BOOKS
       ══════════════════════════════════════════════════════ */}
-      <section id="books" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-16 bg-white">
+      <section id="books" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-16 bg-white">
         <div className="max-w-7xl mx-auto">
-          <motion.div className="mb-12"
+          <motion.div className="text-center mb-16"
             initial="hidden" whileInView="visible" viewport={viewportOptions} variants={fadeInUp}>
             <EditableText
               field="books_heading"
               defaultValue={data.books_heading}
-              className="text-3xl sm:text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] text-center block mb-4"
+              className="text-3xl sm:text-5xl lg:text-6xl font-['Playfair_Display'] font-bold text-[#111111] block mb-4"
             />
             <div className="w-24 h-1 bg-[#3333FF] rounded-full mx-auto" />
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto"
+            className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"
             initial="hidden" whileInView="visible" viewport={viewportOptions} variants={staggerContainer}
           >
             {[
-              { tf: 'book1_title', df: 'book1_description', imgf: 'book1_image', fb: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop' },
-              { tf: 'book2_title', df: 'book2_description', imgf: 'book2_image', fb: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop' },
-              { tf: 'book3_title', df: 'book3_description', imgf: 'book3_image', fb: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400&h=600&fit=crop' },
+              { tf: 'book1_title', df: 'book1_description', imgf: 'book1_image', linkf: 'book1_link', fb: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop' },
+              { tf: 'book2_title', df: 'book2_description', imgf: 'book2_image', linkf: 'book2_link', fb: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop' },
+              { tf: 'book3_title', df: 'book3_description', imgf: 'book3_image', linkf: 'book3_link', fb: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400&h=600&fit=crop' },
             ].map((book, i) => (
-              <motion.div key={i} variants={fadeInUp} whileHover={{ y: -8 }} transition={{ duration: 0.3 }}
-                className="group text-center">
-                <div className="aspect-[3/4] bg-white rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-6 border-2 border-gray-200 group-hover:border-[#3333FF]">
-                  <img src={data[book.imgf] || book.fb} alt="Book cover"
+              <motion.div
+                key={i}
+                variants={fadeInUp}
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-[#3333FF]/30"
+              >
+                {/* Book Cover Image */}
+                <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '3/4' }}>
+                  <img
+                    src={data[book.imgf] || book.fb}
+                    alt="Book cover"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/600x800/e6e8ff/2A35CC?text=Book'; }} />
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/600x800/e6e8ff/2A35CC?text=Book'; }}
+                  />
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-                <EditableText field={book.tf} defaultValue={data[book.tf]}
-                  className="text-xl sm:text-2xl font-['Playfair_Display'] font-bold text-[#111111] mb-3 block" />
-                <EditableText field={book.df} defaultValue={data[book.df]}
-                  className="text-sm font-['Inter'] text-gray-600 mb-4 leading-relaxed block" multiline={true} />
-                <motion.a href="#"
-                  whileHover={{ scale: 1.05, backgroundColor: '#2222CC' }}
-                  className="inline-block bg-[#3333FF] hover:bg-[#2222CC] text-white px-6 py-3 font-['Inter'] font-bold text-sm rounded-md transition-colors shadow-md">
-                  Buy on Amazon
-                </motion.a>
+
+                {/* Card Content — flex-1 so all cards stretch equally */}
+                <div className="flex flex-col flex-1 p-6">
+                  {/* Title */}
+                  <EditableText
+                    field={book.tf}
+                    defaultValue={data[book.tf]}
+                    className="text-lg sm:text-xl font-['Playfair_Display'] font-bold text-[#111111] mb-3 block leading-snug"
+                  />
+                  {/* Blue accent line */}
+                  <div className="w-10 h-0.5 bg-[#3333FF] rounded-full mb-3" />
+                  {/* Description — flex-1 pushes button to bottom */}
+                  <EditableText
+                    field={book.df}
+                    defaultValue={data[book.df]}
+                    className="text-sm font-['Inter'] text-gray-500 leading-relaxed block flex-1 mb-6"
+                    multiline={true}
+                  />
+                  {/* Button — always at bottom */}
+                  <motion.a
+                    href={data[book.linkf] || 'https://www.amazon.in'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.03, backgroundColor: '#2222CC' }}
+                    whileTap={{ scale: 0.97 }}
+                    className="w-full text-center bg-[#3333FF] hover:bg-[#2222CC] text-white px-6 py-3 font-['Inter'] font-bold text-sm rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 mt-auto"
+                  >
+                    Buy on Amazon
+                    <FiArrowRight size={14} />
+                  </motion.a>
+                </div>
               </motion.div>
             ))}
           </motion.div>

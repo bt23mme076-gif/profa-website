@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { doc, getDoc, updateDoc, setDoc, collection, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
-import { FiSave, FiPlus, FiTrash2, FiEdit, FiX, FiBookOpen, FiYoutube, FiFileText, FiDownload, FiStar, FiImage, FiUpload, FiUsers, FiBriefcase } from 'react-icons/fi';
+import { FiSave, FiPlus, FiTrash2, FiEdit, FiX, FiBookOpen, FiYoutube, FiFileText, FiDownload, FiStar, FiImage, FiUpload, FiUsers, FiBriefcase, FiExternalLink } from 'react-icons/fi';
 import { uploadToCloudinary } from '../utils/cloudinaryUpload';
 
 // Add mobile responsive styles
@@ -1092,37 +1092,114 @@ export default function AdminDashboard() {
                     />
                   </div>
                   {[1, 2, 3].map(num => (
-                    <div key={num} style={{ display: 'grid', gap: '0.5rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-                      <h4 style={{ fontWeight: 600 }}>Book {num}</h4>
-                      <input
-                        type="text"
-                        placeholder="Title"
-                        value={homeContent[`book${num}_title`] || ''}
-                        onChange={(e) => setHomeContent({ ...homeContent, [`book${num}_title`]: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Description"
-                        value={homeContent[`book${num}_description`] || ''}
-                        onChange={(e) => setHomeContent({ ...homeContent, [`book${num}_description`]: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Image URL"
-                        value={homeContent[`book${num}_image`] || ''}
-                        onChange={(e) => setHomeContent({ ...homeContent, [`book${num}_image`]: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-                      />
-                      {homeContent[`book${num}_image`] && (
-                        <img 
-                          src={homeContent[`book${num}_image`]} 
-                          alt={`Book ${num} preview`}
-                          style={{ marginTop: '0.5rem', maxWidth: '120px', height: 'auto', borderRadius: '4px' }}
-                          onError={(e) => e.target.style.display = 'none'}
+                    <div key={num} style={{ display: 'grid', gap: '0.75rem', padding: '1.25rem', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e5e5e5' }}>
+                      <h4 style={{ fontWeight: 700, fontSize: '1rem', color: '#1a1a1a', margin: 0 }}>📚 Book {num}</h4>
+
+                      {/* Title */}
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.8rem', fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Title</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. The Art of Leadership"
+                          value={homeContent[`book${num}_title`] || ''}
+                          onChange={(e) => setHomeContent({ ...homeContent, [`book${num}_title`]: e.target.value })}
+                          style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.9rem', boxSizing: 'border-box' }}
                         />
-                      )}
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.8rem', fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</label>
+                        <textarea
+                          placeholder="Short description of the book..."
+                          value={homeContent[`book${num}_description`] || ''}
+                          onChange={(e) => setHomeContent({ ...homeContent, [`book${num}_description`]: e.target.value })}
+                          rows={3}
+                          style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }}
+                        />
+                      </div>
+
+                      {/* Amazon Link */}
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.8rem', fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          🛒 Amazon Link
+                        </label>
+                        <input
+                          type="url"
+                          placeholder="https://www.amazon.in/dp/XXXXXXXXXX"
+                          value={homeContent[`book${num}_link`] || ''}
+                          onChange={(e) => setHomeContent({ ...homeContent, [`book${num}_link`]: e.target.value })}
+                          style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                        />
+                        {homeContent[`book${num}_link`] && (
+                          <a
+                            href={homeContent[`book${num}_link`]}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.35rem', fontSize: '0.78rem', color: '#2A35CC', textDecoration: 'underline' }}
+                          >
+                            <FiExternalLink size={12} /> Open link
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Book Cover Image Upload */}
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.8rem', fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          🖼️ Book Cover Image
+                        </label>
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                          <label
+                            style={{
+                              padding: '0.45rem 1rem',
+                              backgroundColor: homeImageUploading[`book${num}_image`] ? '#9ca3af' : '#2A35CC',
+                              color: 'white',
+                              borderRadius: '6px',
+                              cursor: homeImageUploading[`book${num}_image`] ? 'not-allowed' : 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              flexShrink: 0
+                            }}
+                          >
+                            <FiUpload size={13} />
+                            {homeImageUploading[`book${num}_image`] ? 'Uploading...' : 'Upload Image'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => e.target.files[0] && handleHomeImageUpload(e.target.files[0], `book${num}_image`)}
+                              disabled={homeImageUploading[`book${num}_image`]}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                          {homeImageProgress[`book${num}_image`] && (
+                            <span style={{
+                              color: homeImageProgress[`book${num}_image`].includes('failed') ? '#ef4444' : '#10b981',
+                              fontSize: '0.82rem',
+                              fontWeight: 500
+                            }}>
+                              {homeImageProgress[`book${num}_image`].includes('failed') ? '✗' : '✓'} {homeImageProgress[`book${num}_image`]}
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Or paste image URL directly"
+                          value={homeContent[`book${num}_image`] || ''}
+                          onChange={(e) => setHomeContent({ ...homeContent, [`book${num}_image`]: e.target.value })}
+                          style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                        />
+                        {homeContent[`book${num}_image`] && (
+                          <img
+                            src={homeContent[`book${num}_image`]}
+                            alt={`Book ${num} cover preview`}
+                            style={{ marginTop: '0.6rem', width: '90px', height: '120px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e5e5', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
