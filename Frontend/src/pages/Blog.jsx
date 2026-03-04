@@ -1,9 +1,87 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection';
 import { useAuth } from '../context/AuthContext';
 import EditableText from '../components/EditableText';
-import { FiCalendar, FiArrowRight, FiTag } from 'react-icons/fi';
+import { FiCalendar, FiArrowRight, FiTag, FiSearch, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+
+/* ─── Font + CSS injection ───────────────────────────── */
+if (typeof document !== 'undefined') {
+  if (!document.getElementById('bl-fonts')) {
+    const _blLink = document.createElement('link');
+    _blLink.id = 'bl-fonts';
+    _blLink.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap';
+    _blLink.rel = 'stylesheet';
+    document.head.appendChild(_blLink);
+  }
+  if (!document.getElementById('bl-styles')) {
+    const _blStyle = document.createElement('style');
+    _blStyle.id = 'bl-styles';
+    _blStyle.textContent = `
+      .bl-root{background:#ffffff;min-height:100vh;}
+      .bl-hero{background:linear-gradient(135deg,#e6e8ff 0%,#fff7ed 100%);padding:80px 24px 64px;border-bottom:1px solid rgba(42,53,204,.12);position:relative;overflow:hidden;}
+      .bl-hero::before{content:'';position:absolute;top:-80px;right:-60px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,.14) 0%,transparent 70%);pointer-events:none;}
+      .bl-hero::after{content:'';position:absolute;bottom:-80px;left:-40px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(42,53,204,.1) 0%,transparent 70%);pointer-events:none;}
+      .bl-hero-inner{max-width:1100px;margin:0 auto;text-align:center;position:relative;z-index:1;}
+      .bl-accent-bar{width:80px;height:4px;background:#f97316;border-radius:2px;margin:0 auto 28px;}
+      .bl-hero h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(2.8rem,6vw,5rem);font-weight:700;color:#1a1a1a;line-height:1.1;margin:0 0 20px;letter-spacing:-.02em;}
+      .bl-hero p{font-family:'Inter',system-ui,sans-serif;font-size:1.1rem;color:#6b7280;max-width:600px;margin:0 auto 36px;line-height:1.7;}
+      .bl-stats{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;}
+      .bl-stat{display:inline-flex;flex-direction:column;align-items:center;background:white;border-radius:12px;padding:16px 28px;box-shadow:0 4px 20px rgba(42,53,204,.1);border:1px solid rgba(42,53,204,.08);}
+      .bl-stat strong{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:#2A35CC;}
+      .bl-stat span{font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;color:#9ca3af;letter-spacing:.09em;text-transform:uppercase;margin-top:2px;}
+      .bl-layout{max-width:1100px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:1fr 264px;gap:0 56px;}
+      @media(max-width:900px){.bl-layout{grid-template-columns:1fr;}.bl-sidebar{display:none;}}
+      .bl-main{}
+      .bl-mobile-search{display:none;padding:20px 0;border-bottom:1px solid #f0f0f0;}
+      @media(max-width:900px){.bl-mobile-search{display:block;}}
+      .bl-search-inp{width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:6px;font-family:'Inter',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;box-sizing:border-box;}
+      .bl-search-inp:focus{border-color:#2A35CC;}
+      .bl-entry{display:grid;grid-template-columns:52px 220px 1fr;gap:0 32px;padding:52px 0;border-bottom:1px solid #f0f0f0;position:relative;align-items:start;}
+      @media(max-width:720px){.bl-entry{grid-template-columns:1fr;gap:20px;}.bl-entry-num{display:none;}}
+      .bl-entry-num{font-family:'Playfair Display',serif;font-size:4.5rem;font-weight:700;color:transparent;-webkit-text-stroke:1.5px rgba(42,53,204,.15);line-height:1;padding-top:4px;user-select:none;}
+      .bl-thumb-wrap{border-radius:6px;overflow:hidden;aspect-ratio:4/3;background:#f3f4f6;box-shadow:4px 8px 24px rgba(0,0,0,.12),1px 3px 8px rgba(0,0,0,.08);transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s ease;}
+      .bl-thumb-wrap:hover{transform:translateY(-5px);box-shadow:6px 16px 40px rgba(0,0,0,.14),2px 5px 12px rgba(0,0,0,.07);}
+      .bl-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s;}
+      .bl-thumb-wrap img:hover{opacity:.9;}
+      .bl-content{padding-top:2px;}
+      .bl-tags{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px;}
+      .bl-cat-tag{display:inline-block;font-family:'Inter',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#f97316;background:#fff7ed;padding:3px 10px;border-radius:2px;border:1px solid rgba(249,115,22,.25);}
+      .bl-date-tag{display:inline-flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;font-size:.72rem;color:#9ca3af;}
+      .bl-title{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.35rem,2.2vw,1.8rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin:0 0 14px;letter-spacing:-.01em;}
+      .bl-title-link{color:inherit;text-decoration:none;transition:color .2s;}
+      .bl-title-link:hover{color:#2A35CC;}
+      .bl-excerpt-wrap{border-left:3px solid #f97316;padding-left:16px;margin-bottom:20px;}
+      .bl-excerpt{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:.95rem;color:#6b7280;line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+      .bl-divider{width:36px;height:2px;background:#f97316;margin-bottom:20px;border-radius:1px;}
+      .bl-read-btn{display:inline-flex;align-items:center;gap:7px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#2A35CC;background:transparent;border:2px solid #2A35CC;padding:9px 18px;border-radius:6px;cursor:pointer;transition:background .2s,color .2s,transform .15s;text-decoration:none;}
+      .bl-read-btn:hover{background:#2A35CC;color:white;transform:translateY(-1px);}
+      .bl-expand{overflow:hidden;transition:max-height .4s cubic-bezier(.16,1,.3,1),opacity .3s;max-height:0;opacity:0;}
+      .bl-expand.open{max-height:600px;opacity:1;}
+      .bl-expand-inner{background:#f5f6ff;border-radius:8px;padding:20px 22px;margin-top:16px;font-family:'Inter',sans-serif;font-size:.9rem;color:#374151;line-height:1.75;border-left:3px solid #2A35CC;}
+      .bl-empty{padding:80px 24px;text-align:center;}
+      .bl-empty p:first-child{font-family:'Playfair Display',serif;font-size:2rem;color:#d1d5db;margin-bottom:6px;}
+      .bl-empty p:last-child{font-family:'Inter',sans-serif;font-size:.875rem;color:#9ca3af;}
+      .bl-skeleton-entry{padding:48px 0;border-bottom:1px solid #f0f0f0;display:grid;grid-template-columns:52px 220px 1fr;gap:0 32px;}
+      @media(max-width:720px){.bl-skeleton-entry{grid-template-columns:1fr;gap:16px;}}
+      .bl-sk{background:#f3f4f6;border-radius:4px;animation:bl-pulse 1.4s ease-in-out infinite;}
+      @keyframes bl-pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+      .bl-sidebar{padding-top:48px;}
+      .bl-sidebar-sticky{position:sticky;top:24px;display:flex;flex-direction:column;gap:28px;}
+      .bl-sidebar-section{}
+      .bl-sidebar-label{font-family:'Inter',sans-serif;font-size:.65rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#1a1a1a;margin-bottom:12px;}
+      .bl-sidebar-divider{height:1px;background:#f0f0f0;}
+      .bl-month-btn{width:100%;text-align:left;font-family:'Inter',sans-serif;font-size:.875rem;color:#6b7280;padding:7px 10px;background:transparent;border:none;cursor:pointer;border-radius:4px;transition:background .15s,color .15s;display:flex;justify-content:space-between;align-items:center;}
+      .bl-month-btn:hover{background:#f5f6ff;color:#1a1a1a;}
+      .bl-month-btn.active{font-weight:600;color:#2A35CC;background:#e6e8ff;}
+      .bl-month-count{font-size:.72rem;color:#9ca3af;}
+      .bl-count-note{font-family:'Inter',sans-serif;font-size:.75rem;color:#9ca3af;line-height:1.5;}
+      .bl-count-note strong{color:#1a1a1a;}
+    `;
+    document.head.appendChild(_blStyle);
+  }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const formatDate = (dateVal) => {

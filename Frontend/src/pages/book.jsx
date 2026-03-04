@@ -1,14 +1,104 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { FiExternalLink, FiShoppingCart, FiAward, FiVideo, FiMic, FiEdit2, FiTrash2, FiPlus, FiBookOpen, FiX } from 'react-icons/fi';
+import { FiShoppingCart, FiAward, FiVideo, FiMic, FiEdit2, FiTrash2, FiPlus, FiBookOpen, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDocs, setDoc } from 'firebase/firestore';
-import { db, storage } from '../firebase/config';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db } from '../firebase/config';
 import { uploadToCloudinary } from '../utils/cloudinaryUpload';
 
-// Hardcoded initial data extracted from the Google Sites HTML.
-// You can later move this to Firebase Firestore just like your Courses.
+/* ─── Font + CSS injection ───────────────────────────── */
+if (typeof document !== 'undefined') {
+  const _bkLink = document.createElement('link');
+  _bkLink.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap';
+  _bkLink.rel = 'stylesheet';
+  document.head.appendChild(_bkLink);
+
+  const _bkStyle = document.createElement('style');
+  _bkStyle.textContent = `
+    .bk-root{background:#ffffff;min-height:100vh;}
+    .bk-hero{background:linear-gradient(135deg,#e6e8ff 0%,#fff7ed 100%);padding:80px 24px 64px;border-bottom:1px solid rgba(42,53,204,.12);position:relative;overflow:hidden;}
+    .bk-hero::before{content:'';position:absolute;top:-80px;right:-60px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,.14) 0%,transparent 70%);pointer-events:none;}
+    .bk-hero::after{content:'';position:absolute;bottom:-80px;left:-40px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(42,53,204,.1) 0%,transparent 70%);pointer-events:none;}
+    .bk-hero-inner{max-width:900px;margin:0 auto;text-align:center;position:relative;z-index:1;}
+    .bk-accent-bar{width:80px;height:4px;background:#f97316;border-radius:2px;margin:0 auto 28px;}
+    .bk-hero h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(2.8rem,6vw,5rem);font-weight:700;color:#1a1a1a;line-height:1.1;margin:0 0 20px;letter-spacing:-.02em;}
+    .bk-hero p{font-family:'Inter',system-ui,sans-serif;font-size:1.1rem;color:#6b7280;max-width:600px;margin:0 auto 36px;line-height:1.7;}
+    .bk-stats{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;}
+    .bk-stat{display:inline-flex;flex-direction:column;align-items:center;background:white;border-radius:12px;padding:16px 28px;box-shadow:0 4px 20px rgba(42,53,204,.1);border:1px solid rgba(42,53,204,.08);}
+    .bk-stat strong{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:#2A35CC;}
+    .bk-stat span{font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;color:#9ca3af;letter-spacing:.09em;text-transform:uppercase;margin-top:2px;}
+    .bk-admin-bar{background:#faf8f5;border-bottom:1px solid #e5e7eb;padding:12px 24px;display:flex;justify-content:flex-end;}
+    .bk-admin-bar-inner{max-width:1100px;width:100%;margin:0 auto;display:flex;justify-content:flex-end;}
+    .bk-list{max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+    .bk-entry{display:grid;grid-template-columns:56px 200px 1fr;gap:0 36px;padding:56px 0;border-bottom:1px solid #f0f0f0;position:relative;align-items:start;}
+    @media(max-width:900px){.bk-entry{grid-template-columns:1fr;gap:24px;}.bk-entry-num{display:none;}}
+    .bk-entry-num{font-family:'Playfair Display',serif;font-size:4.5rem;font-weight:700;color:transparent;-webkit-text-stroke:1.5px rgba(42,53,204,.15);line-height:1;padding-top:6px;user-select:none;}
+    .bk-cover-wrap{border-radius:4px;overflow:hidden;aspect-ratio:2/3;background:#f3f4f6;box-shadow:6px 10px 32px rgba(0,0,0,.18),2px 4px 10px rgba(0,0,0,.1);transform:perspective(800px) rotateY(-5deg);transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s ease;cursor:pointer;}
+    .bk-cover-wrap:hover{transform:perspective(800px) rotateY(0deg) translateY(-6px);box-shadow:10px 24px 56px rgba(0,0,0,.18),2px 6px 14px rgba(0,0,0,.08);}
+    .bk-cover-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+    .bk-content{padding-top:4px;}
+    .bk-year-tag{display:inline-block;font-family:'Inter',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#2A35CC;background:#e6e8ff;padding:3px 10px;border-radius:2px;margin-bottom:14px;}
+    .bk-title{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700;color:#1a1a1a;line-height:1.2;margin:0 0 10px;letter-spacing:-.01em;}
+    .bk-authors{font-family:'Inter',sans-serif;font-size:.9rem;color:#4b5563;margin-bottom:4px;line-height:1.5;}
+    .bk-publisher{font-family:'Inter',sans-serif;font-size:.82rem;color:#9ca3af;margin-bottom:24px;}
+    .bk-divider{width:40px;height:2px;background:#f97316;margin-bottom:24px;border-radius:1px;}
+    .bk-award{display:inline-flex;align-items:flex-start;gap:10px;background:linear-gradient(135deg,#fff7ed,#fef3e2);border:1px solid rgba(249,115,22,.25);border-left:3px solid #f97316;padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:16px;width:100%;box-sizing:border-box;}
+    .bk-award svg{color:#f97316;flex-shrink:0;margin-top:1px;}
+    .bk-award a{font-family:'Inter',sans-serif;font-size:.85rem;color:#1a1a1a;text-decoration:none;line-height:1.5;transition:color .2s;}
+    .bk-award a:hover{color:#f97316;}
+    .bk-section-label{display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif;font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;}
+    .bk-section-label .blue{color:#2A35CC;} .bk-section-label .orange{color:#f97316;}
+    .bk-items{list-style:none;padding:0;margin:0 0 20px;}
+    .bk-items li{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;font-family:'Inter',sans-serif;font-size:.875rem;color:#374151;line-height:1.6;}
+    .bk-dot{width:5px;height:5px;border-radius:50%;background:#2A35CC;flex-shrink:0;margin-top:7px;}
+    .bk-dot-o{background:#f97316;}
+    .bk-items a{color:#374151;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s,color .2s;}
+    .bk-items a:hover{color:#2A35CC;border-bottom-color:#2A35CC;}
+    .bk-items .ml:hover{color:#f97316;border-bottom-color:#f97316;}
+    .bk-btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;}
+    .bk-btn-p{display:inline-flex;align-items:center;gap:7px;background:#2A35CC;color:white;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:11px 22px;border:2px solid #2A35CC;border-radius:6px;text-decoration:none;transition:background .2s,color .2s,transform .15s;box-shadow:0 2px 8px rgba(42,53,204,.25);}
+    .bk-btn-p:hover{background:transparent;color:#2A35CC;transform:translateY(-1px);}
+    .bk-btn-s{display:inline-flex;align-items:center;gap:7px;background:transparent;color:#1a1a1a;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:11px 22px;border:2px solid #1a1a1a;border-radius:6px;text-decoration:none;transition:background .2s,color .2s,transform .15s;}
+    .bk-btn-s:hover{background:#1a1a1a;color:white;transform:translateY(-1px);}
+    .bk-admin-btns{position:absolute;top:56px;right:0;display:flex;gap:8px;opacity:0;transition:opacity .2s;}
+    .bk-entry:hover .bk-admin-btns{opacity:1;}
+    .bk-edit-btn{padding:7px 10px;background:#2A35CC;color:white;border:none;border-radius:4px;cursor:pointer;}
+    .bk-del-btn{padding:7px 10px;background:#ef4444;color:white;border:none;border-radius:4px;cursor:pointer;}
+    .bk-add-btn{display:inline-flex;align-items:center;gap:7px;background:#2A35CC;color:white;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;transition:background .2s;box-shadow:0 2px 8px rgba(42,53,204,.25);}
+    .bk-add-btn:hover{background:#1f2a99;}
+    .bk-overlay{position:fixed;inset:0;z-index:50;background:rgba(26,26,26,.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+    .bk-modal{background:white;max-width:740px;width:100%;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.3);margin:auto;}
+    .bk-modal-hd{padding:24px 28px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+    .bk-modal-hd h2{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:#1a1a1a;margin:0;}
+    .bk-close-btn{background:none;border:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:4px;transition:background .15s;}
+    .bk-close-btn:hover{background:#f3f4f6;color:#1a1a1a;}
+    .bk-modal-bd{padding:24px 28px;max-height:calc(100vh - 200px);overflow-y:auto;}
+    .bk-field{margin-bottom:16px;}
+    .bk-field label{display:block;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;margin-bottom:6px;}
+    .bk-inp{width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:6px;font-family:'Inter',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;box-sizing:border-box;}
+    .bk-inp:focus{border-color:#2A35CC;}
+    .bk-g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .bk-alabel{display:flex;justify-content:space-between;align-items:center;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;margin-bottom:8px;}
+    .bk-arow{display:flex;gap:6px;margin-bottom:6px;}
+    .bk-arow .bk-inp{flex:1;}
+    .bk-radd{background:none;border:1.5px solid #2A35CC;color:#2A35CC;padding:2px 9px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;transition:background .15s,color .15s;}
+    .bk-radd:hover{background:#2A35CC;color:white;}
+    .bk-rrem{background:none;border:1.5px solid #fca5a5;color:#ef4444;padding:0 9px;border-radius:4px;cursor:pointer;transition:background .15s;}
+    .bk-rrem:hover{background:#fee2e2;}
+    .bk-modal-ft{padding:16px 28px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:10px;}
+    .bk-cancel{padding:9px 20px;background:transparent;color:#374151;border:1.5px solid #d1d5db;border-radius:6px;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:background .15s;}
+    .bk-cancel:hover{background:#f9fafb;}
+    .bk-save{padding:9px 22px;background:#2A35CC;color:white;border:2px solid #2A35CC;border-radius:6px;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .2s;}
+    .bk-save:hover{background:#1f2a99;}
+    .bk-save:disabled{opacity:.5;cursor:not-allowed;}
+    .bk-error{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:10px 14px;border-radius:6px;font-family:'Inter',sans-serif;font-size:.85rem;margin-bottom:14px;}
+    .bk-prev{height:80px;object-fit:cover;border-radius:4px;margin-top:6px;}
+    .bk-loading{text-align:center;padding:80px 24px;font-family:'Inter',sans-serif;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;}
+  `;
+  document.head.appendChild(_bkStyle);
+}
+
+/* ─── Hardcoded initial data ─────────────────────────── */
 const INITIAL_BOOKS = [
   {
     id: '1',
@@ -16,7 +106,7 @@ const INITIAL_BOOKS = [
     authors: "Jones, Gareth R., Gupta, Vishal & Gopakumar, KV",
     year: "2024",
     publisher: "Pearson: New Delhi",
-    coverUrl: "https://via.placeholder.com/400x600/e6e8ff/1a1a1a?text=Organizational+Theory", // Replace with actual cover image
+    coverUrl: "https://via.placeholder.com/400x600/e6e8ff/1a1a1a?text=Organizational+Theory",
     amazonLink: "https://www.amazon.in/Organizational-Theory-Design-Change-Revised/dp/9361597256",
     flipkartLink: "",
     reviews: [
@@ -34,7 +124,7 @@ const INITIAL_BOOKS = [
     authors: "Gupta, Vishal K. & Gupta, Vishal",
     year: "2024",
     publisher: "Vitasta Publishing: New Delhi",
-    coverUrl: "https://via.placeholder.com/400x600/fff7ed/1a1a1a?text=75+Amazing+Indians", // Replace with actual cover image
+    coverUrl: "https://via.placeholder.com/400x600/fff7ed/1a1a1a?text=75+Amazing+Indians",
     amazonLink: "https://www.amazon.in/Amazing-Indians-Who-Made-Difference/dp/811967099X",
     flipkartLink: "https://www.flipkart.com/75-amazing-indians-made-difference/p/itm8606d83f38c0b?pid=9788119670994",
     reviews: [],
@@ -51,7 +141,7 @@ const INITIAL_BOOKS = [
     authors: "Kaul, A. & Gupta, V.",
     year: "2021",
     publisher: "Bloomsbury: New Delhi",
-    coverUrl: "https://via.placeholder.com/400x600/e6e8ff/1a1a1a?text=Demystifying+Leadership", // Replace with actual cover image
+    coverUrl: "https://via.placeholder.com/400x600/e6e8ff/1a1a1a?text=Demystifying+Leadership",
     amazonLink: "https://www.amazon.in/Demystifying-Leadership-Unveiling-Mahabharata-Code-ebook/dp/B095RFN1XC",
     flipkartLink: "",
     reviews: [],
@@ -66,7 +156,7 @@ const INITIAL_BOOKS = [
     authors: "Gupta, V.",
     year: "2020",
     publisher: "Bloomsbury: New Delhi",
-    coverUrl: "https://via.placeholder.com/400x600/fff7ed/1a1a1a?text=First+Among+Equals", // Replace with actual cover image
+    coverUrl: "https://via.placeholder.com/400x600/fff7ed/1a1a1a?text=First+Among+Equals",
     amazonLink: "https://www.bloomsbury.com/in/first-among-equals-9789387471207/",
     flipkartLink: "",
     reviews: [
@@ -81,75 +171,37 @@ const INITIAL_BOOKS = [
   }
 ];
 
-// Function to fetch books from Firestore
+/* ─── Firebase helpers ───────────────────────────────── */
 const fetchBooks = async () => {
   try {
-    console.log('Fetching books from Firestore...');
-    const booksRef = collection(db, 'books');
-    const q = query(booksRef, where('published', '==', true));
-    const querySnapshot = await getDocs(q);
-    console.log(`Found ${querySnapshot.size} books in Firestore`);
-    
-    const books = querySnapshot.docs.map(doc => {
-      const data = doc.data();
-      console.log('Book data:', doc.id, data.title);
-      return { id: doc.id, ...data };
-    });
-    
-    return books;
+    const q = query(collection(db, 'books'), where('published', '==', true));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (error) {
     console.error('Error fetching books:', error);
     throw error;
   }
 };
 
-// Function to add a new book
+const sanitize = (book, coverUrl) => ({
+  title: String(book.title || ''),
+  authors: String(book.authors || ''),
+  year: String(book.year || ''),
+  publisher: String(book.publisher || ''),
+  coverUrl: String(coverUrl || ''),
+  amazonLink: String(book.amazonLink || ''),
+  flipkartLink: String(book.flipkartLink || ''),
+  reviews: (book.reviews || []).map(r => ({ text: String(r.text || ''), link: String(r.link || '') })),
+  media: (book.media || []).map(m => ({ type: String(m.type || 'video'), text: String(m.text || ''), link: String(m.link || '') })),
+  awards: (book.awards || []).map(a => ({ text: String(a.text || ''), link: String(a.link || '') })),
+  published: true,
+});
+
 const addBook = async (book, file) => {
   try {
-    console.log('Adding new book:', book.title);
     let coverUrl = book.coverUrl || '';
-    
-    if (file) {
-      console.log('Uploading cover image...');
-      coverUrl = await uploadToCloudinary(file, 'books');
-      console.log('Image uploaded:', coverUrl);
-    }
-    
-    // Clean and sanitize all data
-    const bookData = { 
-      title: String(book.title || ''),
-      authors: String(book.authors || ''),
-      year: String(book.year || ''),
-      publisher: String(book.publisher || ''),
-      coverUrl: String(coverUrl),
-      amazonLink: String(book.amazonLink || ''),
-      flipkartLink: String(book.flipkartLink || ''),
-      reviews: Array.isArray(book.reviews) 
-        ? book.reviews.map(r => ({
-            text: String(r.text || ''),
-            link: String(r.link || '')
-          }))
-        : [],
-      media: Array.isArray(book.media) 
-        ? book.media.map(m => ({
-            type: String(m.type || 'video'),
-            text: String(m.text || ''),
-            link: String(m.link || '')
-          }))
-        : [],
-      awards: Array.isArray(book.awards) 
-        ? book.awards.map(a => ({
-            text: String(a.text || ''),
-            link: String(a.link || '')
-          }))
-        : [],
-      published: true,
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('Saving to Firestore with cleaned data:', bookData);
-    const docRef = await addDoc(collection(db, 'books'), bookData);
-    console.log('Book added successfully with ID:', docRef.id);
+    if (file) coverUrl = await uploadToCloudinary(file, 'books');
+    await addDoc(collection(db, 'books'), { ...sanitize(book, coverUrl), createdAt: new Date().toISOString() });
     alert('Book added successfully!');
     return { success: true };
   } catch (error) {
@@ -159,111 +211,25 @@ const addBook = async (book, file) => {
   }
 };
 
-// Function to add a book with a specific ID (for migrating hardcoded books)
 const addBookWithId = async (id, book, file) => {
   try {
-    console.log('Adding book with specific ID:', id, book.title);
     let coverUrl = book.coverUrl || '';
-    
-    if (file) {
-      console.log('Uploading cover image...');
-      coverUrl = await uploadToCloudinary(file, 'books');
-      console.log('Image uploaded:', coverUrl);
-    }
-    
-    // Clean and sanitize all data
-    const bookData = { 
-      title: String(book.title || ''),
-      authors: String(book.authors || ''),
-      year: String(book.year || ''),
-      publisher: String(book.publisher || ''),
-      coverUrl: String(coverUrl),
-      amazonLink: String(book.amazonLink || ''),
-      flipkartLink: String(book.flipkartLink || ''),
-      reviews: Array.isArray(book.reviews) 
-        ? book.reviews.map(r => ({
-            text: String(r.text || ''),
-            link: String(r.link || '')
-          }))
-        : [],
-      media: Array.isArray(book.media) 
-        ? book.media.map(m => ({
-            type: String(m.type || 'video'),
-            text: String(m.text || ''),
-            link: String(m.link || '')
-          }))
-        : [],
-      awards: Array.isArray(book.awards) 
-        ? book.awards.map(a => ({
-            text: String(a.text || ''),
-            link: String(a.link || '')
-          }))
-        : [],
-      published: true,
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('Creating Firestore document with ID:', id);
-    await setDoc(doc(db, 'books', id), bookData);
-    console.log('Book created successfully with ID:', id);
+    if (file) coverUrl = await uploadToCloudinary(file, 'books');
+    await setDoc(doc(db, 'books', id), { ...sanitize(book, coverUrl), createdAt: new Date().toISOString() });
     alert('Book saved successfully!');
     return { success: true };
   } catch (error) {
-    console.error('Error adding book with ID:', error);
+    console.error('Error saving book:', error);
     alert(`Error saving book: ${error.message}`);
     throw error;
   }
 };
 
-// Function to update a book
-const updateBook = async (id, updatedBook, file) => {
+const updateBook = async (id, book, file) => {
   try {
-    // Convert ID to string - Firestore requires string IDs
-    const bookId = String(id);
-    console.log('Updating book:', bookId, updatedBook.title);
-    let coverUrl = updatedBook.coverUrl || '';
-    
-    if (file) {
-      console.log('Uploading new cover image...');
-      coverUrl = await uploadToCloudinary(file, 'books');
-      console.log('Image uploaded:', coverUrl);
-    }
-    
-    // Clean and sanitize all data - remove id and any Firestore metadata
-    const bookData = {
-      title: String(updatedBook.title || ''),
-      authors: String(updatedBook.authors || ''),
-      year: String(updatedBook.year || ''),
-      publisher: String(updatedBook.publisher || ''),
-      coverUrl: String(coverUrl),
-      amazonLink: String(updatedBook.amazonLink || ''),
-      flipkartLink: String(updatedBook.flipkartLink || ''),
-      reviews: Array.isArray(updatedBook.reviews) 
-        ? updatedBook.reviews.map(r => ({
-            text: String(r.text || ''),
-            link: String(r.link || '')
-          }))
-        : [],
-      media: Array.isArray(updatedBook.media) 
-        ? updatedBook.media.map(m => ({
-            type: String(m.type || 'video'),
-            text: String(m.text || ''),
-            link: String(m.link || '')
-          }))
-        : [],
-      awards: Array.isArray(updatedBook.awards) 
-        ? updatedBook.awards.map(a => ({
-            text: String(a.text || ''),
-            link: String(a.link || '')
-          }))
-        : [],
-      published: true,
-      updatedAt: new Date().toISOString()
-    };
-    
-    console.log('Updating Firestore document with cleaned data:', bookData);
-    await updateDoc(doc(db, 'books', bookId), bookData);
-    console.log('Book updated successfully');
+    let coverUrl = book.coverUrl || '';
+    if (file) coverUrl = await uploadToCloudinary(file, 'books');
+    await updateDoc(doc(db, 'books', String(id)), { ...sanitize(book, coverUrl), updatedAt: new Date().toISOString() });
     alert('Book updated successfully!');
     return { success: true };
   } catch (error) {
@@ -273,14 +239,9 @@ const updateBook = async (id, updatedBook, file) => {
   }
 };
 
-// Function to delete a book
 const deleteBook = async (id) => {
   try {
-    // Convert ID to string - Firestore requires string IDs
-    const bookId = String(id);
-    console.log('Deleting book:', bookId);
-    await deleteDoc(doc(db, 'books', bookId));
-    console.log('Book deleted successfully');
+    await deleteDoc(doc(db, 'books', String(id)));
     alert('Book deleted successfully!');
     return { success: true };
   } catch (error) {
@@ -290,27 +251,9 @@ const deleteBook = async (id) => {
   }
 };
 
-// Admin editing functionality
-const AdminBookControls = ({ book, onEdit, onDelete }) => (
-  <div className="absolute top-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-    <button
-      onClick={() => onEdit(book)}
-      className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow"
-    >
-      <FiEdit2 size={16} />
-    </button>
-    <button
-      onClick={() => onDelete(book.id)}
-      className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow"
-    >
-      <FiTrash2 size={16} />
-    </button>
-  </div>
-);
-
-// Book Edit Modal Component
-const BookEditModal = ({ book, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
+/* ─── Modal ──────────────────────────────────────────── */
+function BookEditModal({ book, onClose, onSave }) {
+  const [form, setForm] = useState({
     title: book?.title || '',
     authors: book?.authors || '',
     year: book?.year || '',
@@ -320,620 +263,293 @@ const BookEditModal = ({ book, onClose, onSave }) => {
     flipkartLink: book?.flipkartLink || '',
     reviews: Array.isArray(book?.reviews) ? book.reviews : [],
     media: Array.isArray(book?.media) ? book.media : [],
-    awards: Array.isArray(book?.awards) ? book.awards : []
-    // Note: We deliberately do NOT include 'id' or any Firestore metadata
+    awards: Array.isArray(book?.awards) ? book.awards : [],
   });
-  const [coverFile, setCoverFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [file, setFile] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setError(null);
-    setUploading(true);
-    
+    setSaving(true);
     try {
-      console.log('Raw form data:', formData);
-      
-      // Validate and clean the data - ensure all values are proper types
-      const cleanedData = {
-        title: formData.title || '',
-        authors: formData.authors || '',
-        year: formData.year || '',
-        publisher: formData.publisher || '',
-        coverUrl: formData.coverUrl || '',
-        amazonLink: formData.amazonLink || '',
-        flipkartLink: formData.flipkartLink || '',
-        reviews: Array.isArray(formData.reviews) 
-          ? formData.reviews.filter(r => r && (r.text || r.link))
-          : [],
-        media: Array.isArray(formData.media) 
-          ? formData.media.filter(m => m && (m.text || m.link))
-          : [],
-        awards: Array.isArray(formData.awards) 
-          ? formData.awards.filter(a => a && (a.text || a.link))
-          : []
-      };
-      
-      console.log('Cleaned form data:', cleanedData);
-      await onSave(cleanedData, coverFile);
-      // Don't close here - let the parent component close on success
+      await onSave({
+        ...form,
+        reviews: form.reviews.filter(r => r.text || r.link),
+        media: form.media.filter(m => m.text || m.link),
+        awards: form.awards.filter(a => a.text || a.link),
+      }, file);
     } catch (err) {
-      console.error('Submit error:', err);
       setError(err.message);
     } finally {
-      setUploading(false);
+      setSaving(false);
     }
   };
 
-  const addArrayItem = (field, item) => {
-    const currentArray = Array.isArray(formData[field]) ? formData[field] : [];
-    setFormData({ ...formData, [field]: [...currentArray, item] });
-  };
-
-  const removeArrayItem = (field, index) => {
-    const currentArray = Array.isArray(formData[field]) ? formData[field] : [];
-    setFormData({ 
-      ...formData, 
-      [field]: currentArray.filter((_, i) => i !== index) 
-    });
-  };
-
-  const updateArrayItem = (field, index, key, value) => {
-    const currentArray = Array.isArray(formData[field]) ? formData[field] : [];
-    const updated = [...currentArray];
-    updated[index] = { ...updated[index], [key]: value };
-    setFormData({ ...formData, [field]: updated });
+  const addItem = (f, d) => setForm(p => ({ ...p, [f]: [...(p[f] || []), d] }));
+  const remItem = (f, i) => setForm(p => ({ ...p, [f]: (p[f] || []).filter((_, j) => j !== i) }));
+  const updItem = (f, i, k, v) => {
+    const arr = [...(form[f] || [])];
+    arr[i] = { ...arr[i], [k]: v };
+    setForm(p => ({ ...p, [f]: arr }));
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold">{book ? 'Edit Book' : 'Add New Book'}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <FiX size={24} />
-          </button>
+    <div className="bk-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="bk-modal">
+        <div className="bk-modal-hd">
+          <h2>{book ? 'Edit Book' : 'Add New Book'}</h2>
+          <button className="bk-close-btn" onClick={onClose}><FiX size={20} /></button>
         </div>
-
-        <form onSubmit={handleSubmit} className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-          {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              <strong>Error:</strong> {error}
+        <form onSubmit={submit}>
+          <div className="bk-modal-bd">
+            {error && <div className="bk-error">{error}</div>}
+            <div className="bk-field"><label>Title *</label>
+              <input className="bk-inp" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
             </div>
-          )}
-
-          {/* Basic Info */}
-          <div className="space-y-4 mb-6">
-            <div>
-              <label className="block text-sm font-semibold mb-2">Title *</label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="bk-field"><label>Authors *</label>
+              <input className="bk-inp" required value={form.authors} onChange={e => setForm({ ...form, authors: e.target.value })} />
             </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-2">Authors *</label>
-              <input
-                type="text"
-                required
-                value={formData.authors}
-                onChange={(e) => setFormData({ ...formData, authors: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Year *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.year}
-                  onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+            <div className="bk-g2">
+              <div className="bk-field"><label>Year *</label>
+                <input className="bk-inp" required value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} />
               </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Publisher *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.publisher}
-                  onChange={(e) => setFormData({ ...formData, publisher: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="bk-field"><label>Publisher *</label>
+                <input className="bk-inp" required value={form.publisher} onChange={e => setForm({ ...form, publisher: e.target.value })} />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-2">Cover Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setCoverFile(e.target.files[0])}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {coverFile && (
-                <div className="mt-2">
-                  <p className="text-sm text-green-600">New image selected: {coverFile.name}</p>
-                  <img 
-                    src={URL.createObjectURL(coverFile)} 
-                    alt="Preview" 
-                    className="mt-2 h-32 rounded-lg object-cover"
-                  />
+            <div className="bk-field"><label>Cover Image</label>
+              <input className="bk-inp" type="file" accept="image/*" onChange={e => setFile(e.target.files[0])} />
+              {file && <img src={URL.createObjectURL(file)} alt="preview" className="bk-prev" />}
+              {form.coverUrl && !file && <img src={form.coverUrl} alt="current" className="bk-prev" />}
+            </div>
+            <div className="bk-g2">
+              <div className="bk-field"><label>Amazon Link</label>
+                <input className="bk-inp" type="url" value={form.amazonLink} onChange={e => setForm({ ...form, amazonLink: e.target.value })} />
+              </div>
+              <div className="bk-field"><label>Flipkart Link</label>
+                <input className="bk-inp" type="url" value={form.flipkartLink} onChange={e => setForm({ ...form, flipkartLink: e.target.value })} />
+              </div>
+            </div>
+            {[
+              { f: 'reviews', label: 'Reviews', def: { text: '', link: '' }, keys: ['text', 'link'], phs: ['Review text', 'URL'] },
+              { f: 'awards', label: 'Awards', def: { text: '', link: '' }, keys: ['text', 'link'], phs: ['Award description', 'URL'] },
+            ].map(({ f, label, def, keys, phs }) => (
+              <div className="bk-field" key={f}>
+                <div className="bk-alabel">
+                  <span>{label}</span>
+                  <button type="button" className="bk-radd" onClick={() => addItem(f, { ...def })}>+ Add</button>
                 </div>
-              )}
-              {formData.coverUrl && !coverFile && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-600">Current cover:</p>
-                  <img src={formData.coverUrl} alt="Current cover" className="mt-2 h-32 rounded-lg object-cover" />
+                {(form[f] || []).map((item, i) => (
+                  <div key={i} className="bk-arow">
+                    {keys.map((k, ki) => (
+                      <input key={k} className="bk-inp" type={ki === 1 ? 'url' : 'text'} placeholder={phs[ki]}
+                        value={item[k] || ''} onChange={e => updItem(f, i, k, e.target.value)} />
+                    ))}
+                    <button type="button" className="bk-rrem" onClick={() => remItem(f, i)}><FiTrash2 size={13} /></button>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <div className="bk-field">
+              <div className="bk-alabel">
+                <span>Media & Talks</span>
+                <button type="button" className="bk-radd" onClick={() => addItem('media', { type: 'video', text: '', link: '' })}>+ Add</button>
+              </div>
+              {(form.media || []).map((m, i) => (
+                <div key={i} className="bk-arow">
+                  <select className="bk-inp" style={{ width: 90, flex: 'none' }} value={m.type} onChange={e => updItem('media', i, 'type', e.target.value)}>
+                    <option value="video">Video</option>
+                    <option value="podcast">Podcast</option>
+                  </select>
+                  <input className="bk-inp" placeholder="Description" value={m.text} onChange={e => updItem('media', i, 'text', e.target.value)} />
+                  <input className="bk-inp" type="url" placeholder="URL" value={m.link} onChange={e => updItem('media', i, 'link', e.target.value)} />
+                  <button type="button" className="bk-rrem" onClick={() => remItem('media', i)}><FiTrash2 size={13} /></button>
                 </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Amazon Link</label>
-                <input
-                  type="url"
-                  value={formData.amazonLink}
-                  onChange={(e) => setFormData({ ...formData, amazonLink: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Flipkart Link</label>
-                <input
-                  type="url"
-                  value={formData.flipkartLink}
-                  onChange={(e) => setFormData({ ...formData, flipkartLink: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              ))}
             </div>
           </div>
-
-          {/* Reviews */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-semibold">Reviews</label>
-              <button
-                type="button"
-                onClick={() => addArrayItem('reviews', { text: '', link: '' })}
-                className="text-blue-500 hover:text-blue-700"
-              >
-                <FiPlus />
-              </button>
-            </div>
-            {Array.isArray(formData.reviews) && formData.reviews.map((review, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  placeholder="Review text"
-                  value={review.text || ''}
-                  onChange={(e) => updateArrayItem('reviews', idx, 'text', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg"
-                />
-                <input
-                  type="url"
-                  placeholder="Review link"
-                  value={review.link || ''}
-                  onChange={(e) => updateArrayItem('reviews', idx, 'link', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('reviews', idx)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                >
-                  <FiTrash2 />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Media */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-semibold">Media & Talks</label>
-              <button
-                type="button"
-                onClick={() => addArrayItem('media', { type: 'video', text: '', link: '' })}
-                className="text-blue-500 hover:text-blue-700"
-              >
-                <FiPlus />
-              </button>
-            </div>
-            {Array.isArray(formData.media) && formData.media.map((item, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <select
-                  value={item.type || 'video'}
-                  onChange={(e) => updateArrayItem('media', idx, 'type', e.target.value)}
-                  className="px-3 py-2 border rounded-lg"
-                >
-                  <option value="video">Video</option>
-                  <option value="podcast">Podcast</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Media text"
-                  value={item.text || ''}
-                  onChange={(e) => updateArrayItem('media', idx, 'text', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg"
-                />
-                <input
-                  type="url"
-                  placeholder="Media link"
-                  value={item.link || ''}
-                  onChange={(e) => updateArrayItem('media', idx, 'link', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('media', idx)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                >
-                  <FiTrash2 />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Awards */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-semibold">Awards</label>
-              <button
-                type="button"
-                onClick={() => addArrayItem('awards', { text: '', link: '' })}
-                className="text-blue-500 hover:text-blue-700"
-              >
-                <FiPlus />
-              </button>
-            </div>
-            {Array.isArray(formData.awards) && formData.awards.map((award, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  placeholder="Award text"
-                  value={award.text || ''}
-                  onChange={(e) => updateArrayItem('awards', idx, 'text', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg"
-                />
-                <input
-                  type="url"
-                  placeholder="Award link"
-                  value={award.link || ''}
-                  onChange={(e) => updateArrayItem('awards', idx, 'link', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('awards', idx)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                >
-                  <FiTrash2 />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-6 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 border rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={uploading}
-              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50"
-            >
-              {uploading ? 'Saving...' : 'Save Book'}
-            </button>
+          <div className="bk-modal-ft">
+            <button type="button" className="bk-cancel" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bk-save" disabled={saving}>{saving ? 'Saving…' : 'Save Book'}</button>
           </div>
         </form>
       </div>
     </div>
   );
-};
+}
 
+/* ─── Main Page ──────────────────────────────────────── */
 export default function Books() {
   const { isAdmin } = useAuth() || {};
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingBook, setEditingBook] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
 
-  // Load books from Firestore
-  useEffect(() => {
-    loadBooks();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const loadBooks = async () => {
-    console.log('Loading books...');
+  const load = async () => {
     try {
-      const booksData = await fetchBooks();
-      console.log('Books loaded:', booksData.length);
-      
-      if (booksData.length === 0) {
-        console.log('No books in Firestore, using initial hardcoded data');
-        setBooks(INITIAL_BOOKS);
-      } else {
-        console.log('Setting books from Firestore');
-        setBooks(booksData);
-      }
-    } catch (error) {
-      console.error('Error loading books:', error);
-      console.log('Falling back to initial hardcoded data');
+      const data = await fetchBooks();
+      setBooks(data.length ? data : INITIAL_BOOKS);
+    } catch {
       setBooks(INITIAL_BOOKS);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddBook = async (bookData, file) => {
+  const handleAdd = async (data, file) => {
+    try { await addBook(data, file); await load(); setShowAdd(false); } catch {}
+  };
+
+  const handleUpdate = async (data, file) => {
     try {
-      await addBook(bookData, file);
-      await loadBooks();
-      setShowAddModal(false); // Close modal on success
-    } catch (error) {
-      console.error('Failed to add book:', error);
-      // Modal stays open so user can try again
+      const id = String(editingBook.id);
+      const existing = await fetchBooks();
+      if (existing.some(b => b.id === id)) await updateBook(id, data, file);
+      else await addBookWithId(id, data, file);
+      await load();
+      setEditingBook(null);
+    } catch {}
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Delete this book?')) {
+      try { await deleteBook(id); await load(); } catch {}
     }
   };
 
-  const handleUpdateBook = async (bookData, file) => {
-    try {
-      const bookId = String(editingBook.id);
-      
-      // Check if this is a hardcoded book (Firestore is empty)
-      // If document doesn't exist in Firestore, create it instead of updating
-      const booksData = await fetchBooks();
-      const existsInFirestore = booksData.some(b => b.id === bookId);
-      
-      if (!existsInFirestore) {
-        console.log('Book not in Firestore, creating new document...');
-        // Create the book in Firestore with the same ID
-        await addBookWithId(bookId, bookData, file);
-      } else {
-        console.log('Updating existing Firestore document...');
-        await updateBook(bookId, bookData, file);
-      }
-      
-      await loadBooks();
-      setEditingBook(null); // Close modal on success
-    } catch (error) {
-      console.error('Failed to update book:', error);
-      // Modal stays open so user can try again
-    }
-  };
+  const fy = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: .6, ease: [.16, 1, .3, 1] } } };
+  const stg = { visible: { transition: { staggerChildren: .09 } } };
 
-  const handleDeleteBook = async (id) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
-      try {
-        await deleteBook(id);
-        await loadBooks();
-      } catch (error) {
-        console.error('Failed to delete book:', error);
-      }
-    }
-  };
-
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
-  const viewportOptions = {
-    once: true,
-    margin: "0px 0px -50px 0px",
-    amount: 0.1
-  };
+  const awardsCount = books.reduce((n, b) => n + (b.awards?.length || 0), 0);
+  const years = books.map(b => parseInt(b.year)).filter(Boolean);
+  const yearRange = years.length ? `${Math.min(...years)}–${Math.max(...years)}` : '—';
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Modals */}
-      {showAddModal && (
-        <BookEditModal
-          book={null}
-          onClose={() => setShowAddModal(false)}
-          onSave={handleAddBook}
-        />
-      )}
-      {editingBook && (
-        <BookEditModal
-          book={editingBook}
-          onClose={() => setEditingBook(null)}
-          onSave={handleUpdateBook}
-        />
-      )}
+    <div className="bk-root">
+      {showAdd && <BookEditModal book={null} onClose={() => setShowAdd(false)} onSave={handleAdd} />}
+      {editingBook && <BookEditModal book={editingBook} onClose={() => setEditingBook(null)} onSave={handleUpdate} />}
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#e6e8ff] to-[#fff7ed] py-20 px-6 lg:px-16 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-          >
-            <div className="w-20 h-1 bg-[#f97316] mb-8 rounded-full mx-auto"></div>
-            <h1 className="text-5xl lg:text-7xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-6">
-              Books Authored
-            </h1>
-            <p className="text-xl lg:text-2xl font-['Inter'] text-gray-600 max-w-3xl mx-auto">
-              Explore my published works bridging organizational theory, leadership dynamics, and ancient wisdom for the modern world.
-            </p>
+      {/* Hero */}
+      <section className="bk-hero">
+        <motion.div className="bk-hero-inner" initial="hidden" animate="visible" variants={stg}>
+          <motion.div variants={fy}>
+            <div className="bk-accent-bar" />
+            <h1>Books <em style={{ fontStyle: 'italic', fontWeight: 400, color: '#6b7280' }}>Authored</em></h1>
+            <p>Published works bridging organizational theory, leadership dynamics, and ancient wisdom for the modern world.</p>
           </motion.div>
-        </div>
+          <motion.div variants={fy} className="bk-stats">
+            <div className="bk-stat"><strong>{books.length || INITIAL_BOOKS.length}</strong><span>Books Published</span></div>
+            <div className="bk-stat"><strong>{yearRange}</strong><span>Publication Range</span></div>
+            {awardsCount > 0 && <div className="bk-stat"><strong>{awardsCount}</strong><span>Awards Won</span></div>}
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="text-xl text-gray-600">Loading books...</div>
+      {/* Admin bar */}
+      {isAdmin && (
+        <div className="bk-admin-bar">
+          <div className="bk-admin-bar-inner">
+            <button className="bk-add-btn" onClick={() => setShowAdd(true)}>
+              <FiPlus size={15} /> Add New Book
+            </button>
+          </div>
         </div>
-      ) : (
-        // Main Content - Safal Niveshak Layout Style
-        <section className="py-16 px-6 lg:px-16 bg-white">
-        <div className="max-w-5xl mx-auto">
-          
-          {isAdmin && (
-            <div className="flex justify-end mb-12">
-              <button 
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 bg-[#2A35CC] hover:bg-[#1f2a99] text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-md"
-              >
-                <FiPlus /> Add New Book
-              </button>
-            </div>
-          )}
+      )}
 
-          <div className="space-y-24">
-            {books.map((book, index) => (
-              <motion.div 
-                key={book.id}
-                initial="hidden"
-                whileInView="visible"
-                viewport={viewportOptions}
-                variants={fadeInUp}
-                className="flex flex-col md:flex-row gap-10 lg:gap-16 pb-24 border-b border-gray-200 last:border-b-0 relative group"
-              >
-                {/* Admin Controls */}
+      {/* Book list */}
+      {loading ? (
+        <div className="bk-loading">Loading books…</div>
+      ) : (
+        <div className="bk-list" style={{ paddingTop: 48 }}>
+          {books.map((book, idx) => (
+            <motion.div
+              key={book.id}
+              className="bk-entry"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-60px' }}
+              variants={fy}
+            >
+              <div className="bk-entry-num">{String(idx + 1).padStart(2, '0')}</div>
+
+              <div>
+                <div className="bk-cover-wrap">
+                  <img src={book.coverUrl} alt={book.title} />
+                </div>
+              </div>
+
+              <div className="bk-content">
                 {isAdmin && (
-                  <AdminBookControls
-                    book={book}
-                    onEdit={setEditingBook}
-                    onDelete={handleDeleteBook}
-                  />
+                  <div className="bk-admin-btns">
+                    <button className="bk-edit-btn" onClick={() => setEditingBook(book)}><FiEdit2 size={14} /></button>
+                    <button className="bk-del-btn" onClick={() => handleDelete(book.id)}><FiTrash2 size={14} /></button>
+                  </div>
                 )}
 
-                {/* Left Column: Book Cover */}
-                <div className="w-full md:w-1/3 lg:w-1/4 shrink-0">
-                  <div className="rounded-xl overflow-hidden shadow-2xl transition-transform duration-300 hover:-translate-y-2 border border-gray-100 bg-gray-50 aspect-[2/3] relative">
-                    <img 
-                      src={book.coverUrl} 
-                      alt={book.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
+                <span className="bk-year-tag">{book.year}</span>
+                <h2 className="bk-title">{book.title}</h2>
+                <p className="bk-authors">{book.authors}</p>
+                <p className="bk-publisher">{book.publisher}</p>
+                <div className="bk-divider" />
 
-                {/* Right Column: Book Details */}
-                <div className="w-full md:w-2/3 lg:w-3/4 flex flex-col justify-center">
-                  <h2 className="text-3xl lg:text-4xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-4 leading-tight">
-                    {book.title}
-                  </h2>
-                  
-                  <div className="mb-6 space-y-2 font-['Inter']">
-                    <p className="text-lg text-gray-800">
-                      <span className="font-semibold text-gray-900">Authors:</span> {book.authors}
-                    </p>
-                    <p className="text-gray-600">
-                      <span className="font-semibold">Published:</span> {book.publisher} ({book.year})
-                    </p>
+                {book.awards?.length > 0 && book.awards.map((a, i) => (
+                  <div key={i} className="bk-award">
+                    <FiAward size={15} />
+                    <a href={a.link} target="_blank" rel="noopener noreferrer">{a.text}</a>
                   </div>
+                ))}
 
-                  {/* Badges/Awards */}
-                  {book.awards && book.awards.length > 0 && (
-                    <div className="mb-6">
-                      {book.awards.map((award, i) => (
-                        <div key={i} className="inline-flex items-start gap-2 p-4 bg-[#fff7ed] border-l-4 border-[#f97316] rounded-r-lg">
-                          <FiAward className="w-6 h-6 text-[#f97316] shrink-0 mt-0.5" />
-                          <a href={award.link} target="_blank" rel="noopener noreferrer" className="text-[#1a1a1a] font-['Inter'] font-medium hover:text-[#f97316] transition-colors">
-                            {award.text}
-                          </a>
-                        </div>
+                {book.reviews?.length > 0 && (
+                  <>
+                    <div className="bk-section-label"><FiBookOpen size={11} className="blue" /> <span>Selected Reviews</span></div>
+                    <ul className="bk-items">
+                      {book.reviews.map((r, i) => (
+                        <li key={i}><span className="bk-dot" />
+                          <a href={r.link} target="_blank" rel="noopener noreferrer">{r.text}</a>
+                        </li>
                       ))}
-                    </div>
-                  )}
+                    </ul>
+                  </>
+                )}
 
-                  {/* Reviews List */}
-                  {book.reviews && book.reviews.length > 0 && (
-                    <div className="mb-6">
-                      <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <FiBookOpen className="text-[#2A35CC]" /> Selected Reviews
-                      </h4>
-                      <ul className="space-y-2">
-                        {book.reviews.map((review, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#2A35CC] mt-2.5 shrink-0"></div>
-                            <a href={review.link} target="_blank" rel="noopener noreferrer" className="text-gray-700 font-['Inter'] hover:text-[#2A35CC] transition-colors leading-relaxed">
-                              {review.text}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                {book.media?.length > 0 && (
+                  <>
+                    <div className="bk-section-label"><FiVideo size={11} className="orange" /> <span>Talks & Media</span></div>
+                    <ul className="bk-items">
+                      {book.media.map((m, i) => (
+                        <li key={i}>
+                          <span className="bk-dot bk-dot-o" />
+                          {m.type === 'video'
+                            ? <FiVideo size={12} style={{ color: '#9ca3af', flexShrink: 0 }} />
+                            : <FiMic size={12} style={{ color: '#9ca3af', flexShrink: 0 }} />}
+                          <a href={m.link} target="_blank" rel="noopener noreferrer" className="ml">{m.text}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
 
-                  {/* Media / Talks List */}
-                  {book.media && book.media.length > 0 && (
-                    <div className="mb-8">
-                      <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <FiVideo className="text-[#f97316]" /> Talks & Media
-                      </h4>
-                      <ul className="space-y-2">
-                        {book.media.map((item, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            {item.type === 'video' ? (
-                              <FiVideo className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
-                            ) : (
-                              <FiMic className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
-                            )}
-                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-gray-700 font-['Inter'] hover:text-[#f97316] transition-colors leading-relaxed">
-                              {item.text}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                <div className="bk-btn-row">
+                  {book.amazonLink && (
+                    <a href={book.amazonLink} target="_blank" rel="noopener noreferrer" className="bk-btn-p">
+                      <FiShoppingCart size={14} /> Buy on Amazon
+                    </a>
                   )}
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-4 mt-auto pt-6">
-                    {book.amazonLink && (
-                      <a
-                        href={book.amazonLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#2A35CC] hover:bg-[#1f2a99] text-white font-['Inter'] font-semibold rounded-lg transition-all shadow-md hover:shadow-lg"
-                      >
-                        <FiShoppingCart /> Get it on Amazon
-                      </a>
-                    )}
-                    {book.flipkartLink && (
-                      <a
-                        href={book.flipkartLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#2A35CC] text-[#2A35CC] hover:bg-[#e6e8ff] font-['Inter'] font-semibold rounded-lg transition-all"
-                      >
-                        <FiShoppingCart /> Get it on Flipkart
-                      </a>
-                    )}
-                  </div>
-                  
+                  {book.flipkartLink && (
+                    <a href={book.flipkartLink} target="_blank" rel="noopener noreferrer" className="bk-btn-s">
+                      <FiShoppingCart size={14} /> Buy on Flipkart
+                    </a>
+                  )}
                 </div>
-              </motion.div>
-            ))}
-          </div>
-
+              </div>
+            </motion.div>
+          ))}
         </div>
-      </section>
       )}
     </div>
   );

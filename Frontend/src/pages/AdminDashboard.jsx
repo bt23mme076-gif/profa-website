@@ -237,7 +237,6 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('home');
   const [homeContent, setHomeContent] = useState({});
   const [aboutContent, setAboutContent] = useState({});
-  const [researchContent, setResearchContent] = useState({});
   const [trainingsContent, setTrainingsContent] = useState({});
   const [blogs, setBlogs] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -296,20 +295,6 @@ export default function AdminDashboard() {
         setAboutContent(defaultAbout);
       }
 
-      // Fetch research content
-      const researchDoc = await getDoc(doc(db, 'content', 'research'));
-      if (researchDoc.exists()) {
-        setResearchContent(researchDoc.data());
-        console.log('Research content loaded');
-      } else {
-        console.log('Research content not found, initializing...');
-        const defaultResearch = {
-          page_heading: "Research & Publications",
-          page_description: "Explore my academic contributions spanning leadership, organizational behavior, and management research.",
-        };
-        await setDoc(doc(db, 'content', 'research'), defaultResearch);
-        setResearchContent(defaultResearch);
-      }
 
       // Fetch trainings content
       const trainingsDoc = await getDoc(doc(db, 'content', 'trainings'));
@@ -810,23 +795,7 @@ export default function AdminDashboard() {
               alignItems: 'center',
               gap: '0.5rem'
             }}
-          >
-            <FiBookOpen /> <span>Research</span>
-          </button>
-          <button
-            className="admin-tab"
-            onClick={() => setActiveTab('trainings')}
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'none',
-              borderBottom: activeTab === 'trainings' ? '3px solid #1a1a1a' : 'none',
-              fontWeight: activeTab === 'trainings' ? 600 : 400,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
+          
           >
             <FiBriefcase /> <span>Trainings</span>
           </button>
@@ -1544,64 +1513,6 @@ export default function AdminDashboard() {
             </div>
             <p style={{ marginTop: '1rem', color: '#666', fontSize: '0.9rem' }}>
               More detailed editing options coming soon. For now, you can edit the data directly in Firestore.
-            </p>
-          </div>
-        )}
-
-        {/* Research Page Tab */}
-        {activeTab === 'research' && (
-          <div className="admin-card admin-content-section" style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>Edit Research Page Content</h2>
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Page Heading</label>
-                <input
-                  type="text"
-                  value={researchContent.page_heading || ''}
-                  onChange={(e) => setResearchContent({ ...researchContent, page_heading: e.target.value })}
-                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Page Description</label>
-                <textarea
-                  value={researchContent.page_description || ''}
-                  onChange={(e) => setResearchContent({ ...researchContent, page_description: e.target.value })}
-                  rows={3}
-                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
-                />
-              </div>
-              <button
-                onClick={async () => {
-                  setSaving(true);
-                  try {
-                    await updateDoc(doc(db, 'content', 'research'), researchContent);
-                    setMessage({ text: 'Research page updated successfully!', type: 'success' });
-                    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
-                  } catch (error) {
-                    setMessage({ text: 'Error updating research page', type: 'error' });
-                    console.error(error);
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#2A35CC',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  fontWeight: 600,
-                  opacity: saving ? 0.6 : 1
-                }}
-              >
-                {saving ? 'Saving...' : 'Save Research Content'}
-              </button>
-            </div>
-            <p style={{ marginTop: '1rem', color: '#666', fontSize: '0.9rem' }}>
-              Publications, book chapters, and PhD students can be managed directly in Firestore. Full admin interface coming soon.
             </p>
           </div>
         )}
