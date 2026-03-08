@@ -14,9 +14,6 @@ export default function Footer() {
           {/* Column 1: Logo & Copyright (Centered on Mobile) */}
           <div className="flex flex-col items-center md:items-start space-y-2 md:space-y-4 text-center md:text-left">
             <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black shadow-lg">
-                <span className="text-3xl">😊</span>
-              </div>
               <h3 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight" style={{ color: '#ffffff' }}>
                 Prof. Vishal Gupta
               </h3>

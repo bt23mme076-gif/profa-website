@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { uploadToCloudinary } from '../utils/cloudinaryUpload';
-import { FiLogOut, FiSettings, FiMenu, FiX, FiEdit2, FiCheck, FiCamera, FiMoreVertical } from 'react-icons/fi';
+import { FiLogOut, FiSettings, FiMenu, FiX, FiEdit2, FiCheck, FiMoreVertical } from 'react-icons/fi';
 
 // Default navbar content (fallback when Firestore has no data yet)
 const DEFAULT_NAV_LINKS = [
@@ -33,15 +32,11 @@ export default function Navbar() {
   const [navLinks, setNavLinks] = useState(DEFAULT_NAV_LINKS);
   const [professorName, setProfessorName] = useState('PROF. VISHAL GUPTA');
   const [subtitle, setSubtitle] = useState('IIM Ahmedabad');
-  const [logoUrl, setLogoUrl] = useState('/64b7e6d08d07b_iim,_ahmedabad_logo.svg (1).png');
   const [isSaving, setIsSaving] = useState(false);
 
   // Inline edit state
   const [editingField, setEditingField] = useState(null); // 'name' | 'subtitle' | linkId
   const [editValue, setEditValue] = useState('');
-  const [logoUploading, setLogoUploading] = useState(false);
-  const logoInputRef = useRef(null);
-
   // Drag state for nav links
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -56,7 +51,6 @@ export default function Navbar() {
           const data = snap.data();
           if (data.professorName) setProfessorName(data.professorName);
           if (data.subtitle) setSubtitle(data.subtitle);
-          if (data.logoUrl) setLogoUrl(data.logoUrl);
           if (data.navLinks && Array.isArray(data.navLinks)) setNavLinks(data.navLinks);
         }
       } catch (err) {
@@ -105,23 +99,6 @@ export default function Navbar() {
 
   const cancelEdit = () => {
     setEditingField(null);
-  };
-
-  // --- Logo upload ---
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLogoUploading(true);
-    try {
-      const url = await uploadToCloudinary(file, 'general');
-      setLogoUrl(url);
-      await saveNavbarContent({ logoUrl: url });
-    } catch (err) {
-      alert('Logo upload failed: ' + err.message);
-    } finally {
-      setLogoUploading(false);
-      e.target.value = '';
-    }
   };
 
   // --- Drag to reorder nav links ---
@@ -277,7 +254,7 @@ export default function Navbar() {
             gap: '8px'
           }}>
             <FiEdit2 size={11} />
-            ADMIN EDIT MODE — hover logo to replace · click ✏ to edit text · drag ⠿ to reorder links
+            ADMIN EDIT MODE — click ✏ to edit text · drag ⠿ to reorder links
             {isSaving && <span style={{ opacity: 0.7 }}>· saving…</span>}
           </div>
         )}
@@ -291,69 +268,21 @@ export default function Navbar() {
           justifyContent: 'space-between',
           boxSizing: 'border-box'
         }}>
-          {/* Logo/Brand - Responsive */}
-          {/* Split into: clickable logo area + separate editable text, so edit buttons are NOT inside <Link> */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: windowWidth < 768 ? '0.65rem' : '1rem', flex: 1, minWidth: 0 }}>
+          {/* Brand Name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flex: 1, minWidth: 0 }}>
 
-            {/* Logo - click to go home (unless editing) */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              {/* Invisible Link just for the logo image */}
-              <Link
-                to="/"
-                onClick={(e) => {
-                  if (isAdmin && logoUploading) { e.preventDefault(); return; }
-                  scrollToSection(null);
-                  setMobileMenuOpen(false);
-                }}
-                style={{ display: 'block', lineHeight: 0 }}
-              >
-                <img
-                  src={logoUrl}
-                  alt="IIM Ahmedabad Logo"
-                  style={{
-                    height: windowWidth < 480 ? '36px' : windowWidth < 768 ? '42px' : '55px',
-                    width: 'auto',
-                    objectFit: 'contain',
-                    display: 'block',
-                    opacity: logoUploading ? 0.5 : 1,
-                    transition: 'opacity 0.2s'
-                  }}
-                />
-              </Link>
-
-              {/* Admin logo upload overlay - completely separate from Link */}
-              {isAdmin && (
-                <>
-                  <div
-                    onClick={() => logoInputRef.current?.click()}
-                    title={logoUploading ? 'Uploading…' : 'Click to upload new logo'}
-                    style={{
-                      position: 'absolute', inset: 0,
-                      background: 'rgba(0,0,0,0)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: logoUploading ? 'wait' : 'pointer',
-                      borderRadius: '4px',
-                      transition: 'background 0.2s',
-                      color: '#fff',
-                      zIndex: 5
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.45)'}
-                    onMouseLeave={e => e.currentTarget.style.background = logoUploading ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0)'}
-                  >
-                    {logoUploading
-                      ? <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.03em' }}>…</span>
-                      : <FiCamera size={18} />}
-                  </div>
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleLogoUpload}
-                  />
-                </>
-              )}
-            </div>
+            {/* Gold accent bar */}
+            <div
+              onClick={() => { navigate('/'); scrollToSection(null); setMobileMenuOpen(false); }}
+              style={{
+                width: '4px',
+                height: windowWidth < 768 ? '36px' : '46px',
+                background: 'linear-gradient(to bottom, #F5C400, #e09800)',
+                borderRadius: '2px',
+                flexShrink: 0,
+                cursor: 'pointer'
+              }}
+            />
 
             {/* Text section - plain div, no Link, so edit inputs work perfectly */}
             <div style={{ overflow: 'hidden', minWidth: 0 }}>
@@ -394,18 +323,20 @@ export default function Navbar() {
                       setMobileMenuOpen(false);
                     }}
                     style={{
-                      fontSize: windowWidth < 480 ? '0.85rem' : windowWidth < 768 ? '1rem' : '1.5rem',
+                      fontSize: windowWidth < 480 ? '0.95rem' : windowWidth < 768 ? '1.1rem' : '1.65rem',
                       fontFamily: '"Playfair Display", "Georgia", serif',
                       fontWeight: 700,
                       color: showDark ? '#ffffff' : '#1a1a1a',
-                      letterSpacing: windowWidth < 480 ? '-0.02em' : '-0.03em',
+                      letterSpacing: windowWidth < 480 ? '0' : '0.02em',
                       margin: 0, lineHeight: 1.2,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       cursor: 'pointer',
                       transition: 'color 0.3s ease'
                     }}
                   >
-                    {windowWidth < 480 ? professorName.replace('PROF. ', 'Prof. ') : professorName}
+                    {professorName.startsWith('PROF. ')
+                      ? <><span style={{ fontSize: '0.57em', letterSpacing: '0.14em', color: showDark ? '#F5C400' : '#b8800a', fontFamily: '"Inter", sans-serif', fontWeight: 600 }}>PROF.</span>{' '}{professorName.slice(6)}</>
+                      : professorName}
                   </h1>
                   {isAdmin && (
                     <button

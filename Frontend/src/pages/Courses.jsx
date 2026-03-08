@@ -13,9 +13,37 @@ export default function Courses() {
   const { data: pageData } = useFirestoreDoc('content', 'courses', {
     page_heading: 'Courses',
     page_subtitle: 'Welcome to my learning hub for students, researchers, and practitioners. Explore courses on life skills, leadership, and research methods.',
+    mgmt_heading: 'Management Courses',
+    featured_heading: 'Featured Courses',
+    featured_subtitle: 'Comprehensive online courses combining science, practice, and ancient wisdom',
+    happiness_title: 'HAPPINESS: Science, Practice and Ancient Indian Wisdom',
+    happiness_desc: 'Explore how to become a happy being—successful and at peace. This unique course combines evidence from science, practical well-being techniques, and lessons from Indian wisdom storehouses: the Upanishads, the Gita, and the Yoga Sutras.',
+    happiness_b1: 'Evidence from science',
+    happiness_b2: 'Simple well-being techniques',
+    happiness_b3: 'Ancient Indian wisdom',
+    leadership_title: 'Leadership Skills',
+    leadership_desc: 'A beginner course for professionals from diverse backgrounds. Strengthen your capacity to lead across boundaries, with or without authority, and manage the inevitable stresses and challenges of leading a team. Drawing from business, philosophy, sports, and psychology.',
+    leadership_b1: 'Lead across boundaries',
+    leadership_b2: 'Lead with or without authority',
+    leadership_b3: 'Manage leadership stresses',
+    research_heading: 'Research Methods',
+    research_subtitle: 'Comprehensive lecture series on advanced research methodologies for scholars and practitioners',
+    multilevel_title: 'Multilevel Modeling',
+    multilevel_desc: 'Multilevel models (also known as hierarchical linear models, linear mixed-effect model, mixed models, nested data models, or random-effects models) are statistical models of parameters that vary at more than one level. These models are particularly appropriate for research designs where data for participants are organized at more than one level (e.g., employees nested under team leaders).',
+    sem_title: 'Covariance-Based SEM',
+    sem_desc: 'Structural Equation Modeling (SEM) is a statistical methodology widely used in social sciences research. SEM allows researchers to test complex models with multiple pathways, model latent variables with multiple indicators, investigate mediation and moderation systematically, and adjust for measurement error in predictor variables. This series provides a general introduction to CB-SEM using AMOS software.',
+    psychometrics_title: 'Psychometrics',
+    psychometrics_desc: 'Introduction to central concepts of measurement covering test construction, item analysis, reliability, validity, and measurement error. Includes hands-on sessions with SPSS and AMOS.',
+    conditional_title: 'Conditional Process Analysis',
+    conditional_desc: 'A comprehensive three-video series explaining mediation, moderation, and conditional process analysis with practical dataset examples.',
+    manuscript_title: 'Manuscript Writing & Publishing',
+    manuscript_desc: 'A 16-session series covering elements of manuscript writing and strategies for high-quality academic publishing. Includes instruction files and supplementary readings.',
+    cta_heading: 'Ready to Start Learning?',
+    cta_subtitle: 'Explore our courses and begin your journey toward personal and professional excellence.',
   });
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const [homeOverrides, setHomeOverrides] = useState({});
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
@@ -37,7 +65,7 @@ export default function Courses() {
   // To fetch all for admin, you could conditionally build the query array.
   const { data: courses, loading: coursesLoading } = useFirestoreCollection('courses', [
     where('published', '==', true)
-  ]);
+  ], true);
 
   // Helper function to extract YouTube video ID from various URL formats
   const extractVideoId = (url) => {
@@ -86,9 +114,12 @@ export default function Courses() {
   };
 
   const toggleShowOnHome = async (course) => {
+    const newVal = !(homeOverrides[course.id] ?? course.showOnHome);
+    setHomeOverrides(prev => ({ ...prev, [course.id]: newVal }));
     try {
-      await updateDoc(doc(db, 'courses', course.id), { showOnHome: !course.showOnHome });
+      await updateDoc(doc(db, 'courses', course.id), { showOnHome: newVal });
     } catch (error) {
+      setHomeOverrides(prev => ({ ...prev, [course.id]: !newVal }));
       alert('Failed to update');
     }
   };
@@ -112,14 +143,14 @@ export default function Courses() {
               {badge}
             </span>
           )}
-          <h3 className="text-2xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-2">
+          <div className="text-2xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-2">
             {title}
-          </h3>
+          </div>
         </div>
       </div>
-      <p className="text-gray-700 font-['Inter'] leading-relaxed mb-6">
+      <div className="text-gray-700 font-['Inter'] leading-relaxed mb-6">
         {description}
-      </p>
+      </div>
       {children}
       {link && (
         <a
@@ -143,12 +174,12 @@ export default function Courses() {
       variants={fadeInUp}
       className="bg-gradient-to-br from-[#fff7ed] to-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow border-l-4 border-[#f97316]"
     >
-      <h4 className="text-xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-3">
+      <div className="text-xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-3">
         {title}
-      </h4>
-      <p className="font-['Inter'] text-gray-600 mb-4">
+      </div>
+      <div className="font-['Inter'] text-gray-600 mb-4">
         {description}
-      </p>
+      </div>
       {driveLink && (
         <a
           href={driveLink}
@@ -210,7 +241,13 @@ export default function Courses() {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-4">
-                  Management Courses
+                  <EditableText
+                    collection="content"
+                    docId="courses"
+                    field="mgmt_heading"
+                    defaultValue={pageData?.mgmt_heading || 'Management Courses'}
+                    className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a]"
+                  />
                 </h2>
                 <div className="w-24 h-1 bg-[#004B8D] rounded-full"></div>
               </div>
@@ -257,6 +294,17 @@ export default function Courses() {
                   >
                     {isAdmin && (
                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <button
+                          title={homeOverrides[course.id] ?? course.showOnHome ? 'Remove from Home page' : 'Show on Home page'}
+                          onClick={() => toggleShowOnHome(course)}
+                          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
+                            (homeOverrides[course.id] ?? course.showOnHome)
+                              ? 'bg-[#004B8D] text-white shadow'
+                              : 'bg-gray-100 text-gray-600 hover:bg-[#dce8f5] hover:text-[#004B8D]'
+                          }`}
+                        >
+                          🏠 {(homeOverrides[course.id] ?? course.showOnHome) ? 'On Home' : '+ Home'}
+                        </button>
                         <button
                           onClick={() => setEditingCourse(course)}
                           className="p-2 bg-[#004B8D] hover:bg-[#003870] text-white rounded-lg shadow"
@@ -310,14 +358,14 @@ export default function Courses() {
                       </div>
                     )}
                     
-                    {course.youtubeUrl && (
+                    {(course.courseLink || course.youtubeUrl) && (
                       <a
-                        href={course.youtubeUrl}
+                        href={course.courseLink || course.youtubeUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#004B8D] hover:bg-[#003870] text-white font-['Inter'] font-semibold rounded-lg transition-all shadow-md mt-auto"
                       >
-                        Watch Course
+                        Explore Course
                         <FiExternalLink className="w-4 h-4" />
                       </a>
                     )}
@@ -352,19 +400,32 @@ export default function Courses() {
             className="mb-12"
           >
             <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-4">
-              Featured Courses
+              <EditableText
+                collection="content"
+                docId="courses"
+                field="featured_heading"
+                defaultValue={pageData?.featured_heading || 'Featured Courses'}
+                className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a]"
+              />
             </h2>
             <div className="w-24 h-1 bg-[#f97316] rounded-full mb-4"></div>
             <p className="text-lg font-['Inter'] text-gray-600 max-w-2xl">
-              Comprehensive online courses combining science, practice, and ancient wisdom
+              <EditableText
+                collection="content"
+                docId="courses"
+                field="featured_subtitle"
+                defaultValue={pageData?.featured_subtitle || 'Comprehensive online courses combining science, practice, and ancient wisdom'}
+                className="text-lg font-['Inter'] text-gray-600"
+                multiline
+              />
             </p>
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <CourseCard
               icon={FiBook}
-              title="HAPPINESS: Science, Practice and Ancient Indian Wisdom"
-              description="Explore how to become a happy being—successful and at peace. This unique course combines evidence from science, practical well-being techniques, and lessons from Indian wisdom storehouses: the Upanishads, the Gita, and the Yoga Sutras."
+              title={<EditableText collection="content" docId="courses" field="happiness_title" defaultValue={pageData?.happiness_title || 'HAPPINESS: Science, Practice and Ancient Indian Wisdom'} />}
+              description={<EditableText collection="content" docId="courses" field="happiness_desc" defaultValue={pageData?.happiness_desc || 'Explore how to become a happy being—successful and at peace. This unique course combines evidence from science, practical well-being techniques, and lessons from Indian wisdom storehouses: the Upanishads, the Gita, and the Yoga Sutras.'} multiline />}
               link="https://www.coursera.org/learn/happiness"
               linkText="Enroll on Coursera"
               badge="COURSERA"
@@ -373,23 +434,23 @@ export default function Courses() {
               <div className="mb-6 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
                   <FiBook className="w-4 h-4 text-[#f97316]" />
-                  <span>Evidence from science</span>
+                  <EditableText collection="content" docId="courses" field="happiness_b1" defaultValue={pageData?.happiness_b1 || 'Evidence from science'} />
                 </div>
                 <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
                   <FiBook className="w-4 h-4 text-[#f97316]" />
-                  <span>Simple well-being techniques</span>
+                  <EditableText collection="content" docId="courses" field="happiness_b2" defaultValue={pageData?.happiness_b2 || 'Simple well-being techniques'} />
                 </div>
                 <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
                   <FiBook className="w-4 h-4 text-[#f97316]" />
-                  <span>Ancient Indian wisdom</span>
+                  <EditableText collection="content" docId="courses" field="happiness_b3" defaultValue={pageData?.happiness_b3 || 'Ancient Indian wisdom'} />
                 </div>
               </div>
             </CourseCard>
 
             <CourseCard
               icon={FiUsers}
-              title="Leadership Skills"
-              description="A beginner course for professionals from diverse backgrounds. Strengthen your capacity to lead across boundaries, with or without authority, and manage the inevitable stresses and challenges of leading a team. Drawing from business, philosophy, sports, and psychology."
+              title={<EditableText collection="content" docId="courses" field="leadership_title" defaultValue={pageData?.leadership_title || 'Leadership Skills'} />}
+              description={<EditableText collection="content" docId="courses" field="leadership_desc" defaultValue={pageData?.leadership_desc || 'A beginner course for professionals from diverse backgrounds. Strengthen your capacity to lead across boundaries, with or without authority, and manage the inevitable stresses and challenges of leading a team. Drawing from business, philosophy, sports, and psychology.'} multiline />}
               link="https://www.coursera.org/learn/leadershipskills"
               linkText="Enroll on Coursera"
               badge="COURSERA"
@@ -398,15 +459,15 @@ export default function Courses() {
               <div className="mb-6 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
                   <FiUsers className="w-4 h-4 text-[#004B8D]" />
-                  <span>Lead across boundaries</span>
+                  <EditableText collection="content" docId="courses" field="leadership_b1" defaultValue={pageData?.leadership_b1 || 'Lead across boundaries'} />
                 </div>
                 <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
                   <FiUsers className="w-4 h-4 text-[#004B8D]" />
-                  <span>Lead with or without authority</span>
+                  <EditableText collection="content" docId="courses" field="leadership_b2" defaultValue={pageData?.leadership_b2 || 'Lead with or without authority'} />
                 </div>
                 <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
                   <FiUsers className="w-4 h-4 text-[#004B8D]" />
-                  <span>Manage leadership stresses</span>
+                  <EditableText collection="content" docId="courses" field="leadership_b3" defaultValue={pageData?.leadership_b3 || 'Manage leadership stresses'} />
                 </div>
               </div>
             </CourseCard>
@@ -425,11 +486,24 @@ export default function Courses() {
             className="mb-12"
           >
             <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-4">
-              Research Methods
+              <EditableText
+                collection="content"
+                docId="courses"
+                field="research_heading"
+                defaultValue={pageData?.research_heading || 'Research Methods'}
+                className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a]"
+              />
             </h2>
             <div className="w-24 h-1 bg-[#004B8D] rounded-full mb-4"></div>
             <p className="text-lg font-['Inter'] text-gray-600 max-w-2xl">
-              Comprehensive lecture series on advanced research methodologies for scholars and practitioners
+              <EditableText
+                collection="content"
+                docId="courses"
+                field="research_subtitle"
+                defaultValue={pageData?.research_subtitle || 'Comprehensive lecture series on advanced research methodologies for scholars and practitioners'}
+                className="text-lg font-['Inter'] text-gray-600"
+                multiline
+              />
             </p>
           </motion.div>
 
@@ -447,11 +521,22 @@ export default function Courses() {
                   <FiTrendingUp className="w-6 h-6 text-[#004B8D]" />
                 </div>
                 <h3 className="text-3xl font-['Playfair_Display'] font-bold text-[#1a1a1a]">
-                  Multilevel Modeling
+                  <EditableText
+                    collection="content"
+                    docId="courses"
+                    field="multilevel_title"
+                    defaultValue={pageData?.multilevel_title || 'Multilevel Modeling'}
+                  />
                 </h3>
               </div>
               <p className="text-gray-700 font-['Inter'] leading-relaxed mb-6">
-                Multilevel models (also known as hierarchical linear models, linear mixed-effect model, mixed models, nested data models, or random-effects models) are statistical models of parameters that vary at more than one level. These models are particularly appropriate for research designs where data for participants are organized at more than one level (e.g., employees nested under team leaders).
+                <EditableText
+                  collection="content"
+                  docId="courses"
+                  field="multilevel_desc"
+                  defaultValue={pageData?.multilevel_desc || 'Multilevel models (also known as hierarchical linear models, linear mixed-effect model, mixed models, nested data models, or random-effects models) are statistical models of parameters that vary at more than one level. These models are particularly appropriate for research designs where data for participants are organized at more than one level (e.g., employees nested under team leaders).'}
+                  multiline
+                />
               </p>
               <a
                 href="https://drive.google.com/drive/folders/1GTHqiJX1sEjSuVlhBmR_Z5DETrUwIHGd"
@@ -477,11 +562,22 @@ export default function Courses() {
                   <FiBarChart2 className="w-6 h-6 text-[#f97316]" />
                 </div>
                 <h3 className="text-3xl font-['Playfair_Display'] font-bold text-[#1a1a1a]">
-                  Covariance-Based SEM
+                  <EditableText
+                    collection="content"
+                    docId="courses"
+                    field="sem_title"
+                    defaultValue={pageData?.sem_title || 'Covariance-Based SEM'}
+                  />
                 </h3>
               </div>
               <p className="text-gray-700 font-['Inter'] leading-relaxed mb-4">
-                Structural Equation Modeling (SEM) is a statistical methodology widely used in social sciences research. SEM allows researchers to test complex models with multiple pathways, model latent variables with multiple indicators, investigate mediation and moderation systematically, and adjust for measurement error in predictor variables. This series provides a general introduction to CB-SEM using AMOS software.
+                <EditableText
+                  collection="content"
+                  docId="courses"
+                  field="sem_desc"
+                  defaultValue={pageData?.sem_desc || 'Structural Equation Modeling (SEM) is a statistical methodology widely used in social sciences research. SEM allows researchers to test complex models with multiple pathways, model latent variables with multiple indicators, investigate mediation and moderation systematically, and adjust for measurement error in predictor variables. This series provides a general introduction to CB-SEM using AMOS software.'}
+                  multiline
+                />
               </p>
               <p className="text-gray-500 font-['Inter'] text-sm italic">
                 Note: Material link to be updated
@@ -491,18 +587,18 @@ export default function Courses() {
             {/* Grid of Research Topics */}
             <div className="grid md:grid-cols-2 gap-6">
               <ResearchLecture
-                title="Psychometrics"
-                description="Introduction to central concepts of measurement covering test construction, item analysis, reliability, validity, and measurement error. Includes hands-on sessions with SPSS and AMOS."
+                title={<EditableText collection="content" docId="courses" field="psychometrics_title" defaultValue={pageData?.psychometrics_title || 'Psychometrics'} />}
+                description={<EditableText collection="content" docId="courses" field="psychometrics_desc" defaultValue={pageData?.psychometrics_desc || 'Introduction to central concepts of measurement covering test construction, item analysis, reliability, validity, and measurement error. Includes hands-on sessions with SPSS and AMOS.'} multiline />}
                 driveLink="https://drive.google.com/drive/folders/"
               />
               <ResearchLecture
-                title="Conditional Process Analysis"
-                description="A comprehensive three-video series explaining mediation, moderation, and conditional process analysis with practical dataset examples."
+                title={<EditableText collection="content" docId="courses" field="conditional_title" defaultValue={pageData?.conditional_title || 'Conditional Process Analysis'} />}
+                description={<EditableText collection="content" docId="courses" field="conditional_desc" defaultValue={pageData?.conditional_desc || 'A comprehensive three-video series explaining mediation, moderation, and conditional process analysis with practical dataset examples.'} multiline />}
                 driveLink="https://drive.google.com/file/d/1Ih2WCnyC64mESIKByOIOYAmkCioAGiTO/view?usp=sharing"
               />
               <ResearchLecture
-                title="Manuscript Writing & Publishing"
-                description="A 16-session series covering elements of manuscript writing and strategies for high-quality academic publishing. Includes instruction files and supplementary readings."
+                title={<EditableText collection="content" docId="courses" field="manuscript_title" defaultValue={pageData?.manuscript_title || 'Manuscript Writing & Publishing'} />}
+                description={<EditableText collection="content" docId="courses" field="manuscript_desc" defaultValue={pageData?.manuscript_desc || 'A 16-session series covering elements of manuscript writing and strategies for high-quality academic publishing. Includes instruction files and supplementary readings.'} multiline />}
                 driveLink="https://drive.google.com/drive/folders/"
               />
             </div>
@@ -520,10 +616,23 @@ export default function Courses() {
             variants={fadeInUp}
           >
             <h2 className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a] mb-6">
-              Ready to Start Learning?
+              <EditableText
+                collection="content"
+                docId="courses"
+                field="cta_heading"
+                defaultValue={pageData?.cta_heading || 'Ready to Start Learning?'}
+                className="text-4xl lg:text-5xl font-['Playfair_Display'] font-bold text-[#1a1a1a]"
+              />
             </h2>
             <p className="text-xl font-['Inter'] text-gray-700 mb-8">
-              Explore our courses and begin your journey toward personal and professional excellence.
+              <EditableText
+                collection="content"
+                docId="courses"
+                field="cta_subtitle"
+                defaultValue={pageData?.cta_subtitle || 'Explore our courses and begin your journey toward personal and professional excellence.'}
+                className="text-xl font-['Inter'] text-gray-700"
+                multiline
+              />
             </p>
             <a
               href="https://www.youtube.com/@ProfVishalGupta"
@@ -546,6 +655,7 @@ function CourseForm({ course, onSave, onCancel }) {
   const [formData, setFormData] = useState(course || {
     title: '',
     description: '',
+    courseLink: '',
     youtubeUrl: '',
     thumbnail: ''
   });
@@ -581,7 +691,17 @@ function CourseForm({ course, onSave, onCancel }) {
         />
       </div>
       <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700">YouTube URL</label>
+        <label className="block text-sm font-semibold mb-2 text-gray-700">Course Link <span className="text-gray-400 font-normal">(Coursera, website, etc.)</span></label>
+        <input
+          type="url"
+          value={formData.courseLink}
+          onChange={(e) => setFormData({ ...formData, courseLink: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004B8D] outline-none transition-shadow"
+          placeholder="https://www.coursera.org/learn/..."
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold mb-2 text-gray-700">YouTube URL <span className="text-gray-400 font-normal">(for video preview)</span></label>
         <input
           type="url"
           value={formData.youtubeUrl}

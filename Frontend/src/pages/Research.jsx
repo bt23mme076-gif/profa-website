@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { FiExternalLink, FiBookOpen, FiUsers, FiFileText, FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from 'react-icons/fi';
+import { useState, useMemo } from 'react';
+import { FiExternalLink, FiBookOpen, FiUsers, FiFileText, FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiSearch } from 'react-icons/fi';
 import { useFirestoreDoc } from '../hooks/useFirestoreDoc';
 import { useAuth } from '../context/AuthContext';
 import EditableText from '../components/EditableText';
@@ -15,6 +15,7 @@ export default function Research() {
   const [showAddPub, setShowAddPub] = useState(false);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [showAddCase, setShowAddCase] = useState(false);
+  const [pubSearch, setPubSearch] = useState('');
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -585,6 +586,17 @@ export default function Research() {
   const displayPublications = (researchData?.featured_publications && researchData.featured_publications.length > 0)
     ? researchData.featured_publications
     : featuredPublications;
+
+  const filteredPublications = useMemo(() => {
+    const q = pubSearch.trim().toLowerCase();
+    if (!q) return displayPublications;
+    return displayPublications.filter(p =>
+      p.title?.toLowerCase().includes(q) ||
+      p.authors?.toLowerCase().includes(q) ||
+      p.year?.toString().includes(q) ||
+      p.journal?.toLowerCase().includes(q)
+    );
+  }, [pubSearch, displayPublications]);
   const displayBookChapters = researchData?.book_chapters || bookChapters;
   const displayCases = researchData?.cases || cases;
 
@@ -673,6 +685,31 @@ export default function Research() {
                 </button>
               )}
             </div>
+
+            {/* Search bar */}
+            <div className="mt-6 relative max-w-xl">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                value={pubSearch}
+                onChange={e => setPubSearch(e.target.value)}
+                placeholder="Search by title, author, year, or journal…"
+                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#004B8D] text-sm"
+              />
+              {pubSearch && (
+                <button
+                  onClick={() => setPubSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <FiX size={16} />
+                </button>
+              )}
+            </div>
+            {pubSearch && (
+              <p className="mt-2 text-sm text-gray-500">
+                {filteredPublications.length} result{filteredPublications.length !== 1 ? 's' : ''} for &ldquo;{pubSearch}&rdquo;
+              </p>
+            )}
           </motion.div>
 
           {showAddPub && isAdmin && (
@@ -685,7 +722,7 @@ export default function Research() {
           )}
 
           <div className="space-y-6">
-            {displayPublications.map((pub, index) => (
+            {filteredPublications.map((pub, index) => (
               <motion.div
                 key={pub.id || index}
                 initial="hidden"

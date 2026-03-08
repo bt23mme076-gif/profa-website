@@ -519,13 +519,13 @@ export default function Home() {
           const row1 = [...allItems, ...allItems];
 
           const Card = ({ t }) => (
-            <div className="flex-shrink-0 w-[320px] sm:w-[380px] mx-3 bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-[#004B8D] px-6 py-5">
-              <p className="text-sm sm:text-[0.9rem] font-['Playfair_Display'] italic text-gray-700 leading-relaxed mb-4 line-clamp-4">
+            <div className="flex-shrink-0 w-[380px] sm:w-[460px] mx-4 bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-[#004B8D] px-8 py-7">
+              <p className="text-base sm:text-lg font-['Playfair_Display'] italic text-gray-700 leading-relaxed mb-5 line-clamp-4">
                 "{t.quote}"
               </p>
-              <div className="h-px bg-gray-100 mb-3" />
-              <p className="text-xs font-['Inter'] font-semibold text-[#004B8D]">— {t.author}</p>
-              <p className="text-xs font-['Inter'] text-gray-400 italic">
+              <div className="h-px bg-gray-100 mb-4" />
+              <p className="text-sm font-['Inter'] font-semibold text-[#004B8D]">— {t.author}</p>
+              <p className="text-sm font-['Inter'] text-gray-400 italic">
                 {t.role}{t.organization ? `, ${t.organization}` : ''}
               </p>
             </div>
@@ -593,8 +593,8 @@ export default function Home() {
               <div className="logos-track">
                 {doubled.map((logo, i) => (
                   <div key={`logo-${i}`}
-                    className="flex-shrink-0 flex items-center justify-center h-16 lg:h-20 px-6 py-3 mx-3 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-white transition-colors"
-                    style={{ maxWidth: '140px' }}
+                    className="flex-shrink-0 flex items-center justify-center h-20 lg:h-28 px-8 py-4 mx-3 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-white transition-colors"
+                    style={{ maxWidth: '180px' }}
                   >
                     {logo.logoUrl ? (
                       <>
@@ -604,7 +604,7 @@ export default function Home() {
                         <span className="font-['Inter'] font-bold text-gray-700 text-center hidden text-sm">{logo.name}</span>
                       </>
                     ) : (
-                      <span className="font-['Inter'] font-bold text-gray-700 text-center text-sm lg:text-base whitespace-nowrap">{logo.name}</span>
+                      <span className="font-['Inter'] font-bold text-gray-700 text-center text-sm lg:text-lg whitespace-nowrap">{logo.name}</span>
                     )}
                   </div>
                 ))}
