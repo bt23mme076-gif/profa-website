@@ -6,7 +6,7 @@ import { FiArrowRight, FiBookOpen, FiStar, FiCheck, FiCalendar } from 'react-ico
 import { useFirestoreDoc } from '../hooks/useFirestoreDoc';
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection';
 import { subscribeToNewsletter } from '../utils/newsletter';
-import { where, orderBy, limit } from 'firebase/firestore';
+import { where, limit } from 'firebase/firestore';
 
 // ─── Color palette (Website_colours.pdf)
 // bg-white    → sections 1,2,4,6   bg-[#ebf2f8] → sections 3,5,8 (subtle blue-tint)
@@ -108,11 +108,9 @@ export default function Home() {
     newsletter_description: "Don't miss out on new insights on leadership, strategy, and organizational excellence. Sign up for the latest research findings, course updates, and thought-provoking ideas."
   });
 
-  const { data: blogs, loading: blogsLoading } = useFirestoreCollection('blogs', [
+  const { data: blogsRaw, loading: blogsLoading } = useFirestoreCollection('blogs', [
     where('published', '==', true),
-    orderBy('date', 'desc'),
-    limit(6)
-  ]);
+  ], true);
 
   const { data: courses, loading: coursesLoading } = useFirestoreCollection('courses', [
     where('published', '==', true),
@@ -171,8 +169,13 @@ export default function Home() {
   }
 
   // ─── Blog fallback data ────────────────────────────────────────────────────
-  const homeBlogs = (blogs || []).filter(b => b.showOnHome);
-  const recentBlogs = homeBlogs.length > 0 ? homeBlogs : (blogs && blogs.length > 0) ? blogs : [
+  const blogs = [...(blogsRaw || [])].sort((a, b) => {
+    const ta = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+    const tb = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+    return tb - ta;
+  });
+  const homeBlogs = blogs.filter(b => b.showOnHome);
+  const recentBlogs = homeBlogs.length > 0 ? homeBlogs : blogs.length > 0 ? blogs : [
     { id: 'b1', title: data.blog1_title, excerpt: data.blog1_excerpt, imageUrl: data.blog1_image, date: '2026-02-01', slug: 'blog-1' },
     { id: 'b2', title: data.blog2_title, excerpt: data.blog2_excerpt, imageUrl: data.blog2_image, date: '2026-01-28', slug: 'blog-2' },
     { id: 'b3', title: data.blog3_title, excerpt: data.blog3_excerpt, imageUrl: data.blog3_image, date: '2026-01-15', slug: 'blog-3' },
