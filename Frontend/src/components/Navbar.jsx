@@ -599,10 +599,14 @@ export default function Navbar() {
               ) : (
                 <>
                   {/* IIMA Profile Button */}
-                  <a
-                    href="https://www.iima.ac.in/faculty-research/faculty-directory/Vishal-Gupta"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => {
+                      if (location.pathname !== '/') {
+                        navigate('/', { state: { scrollTo: '#newsletter' } });
+                      } else {
+                        scrollToSection('#newsletter');
+                      }
+                    }}
                     style={{ 
                       padding: '0.7rem 1.6rem', 
                       backgroundColor: '#F5C400', 
@@ -631,7 +635,7 @@ export default function Navbar() {
                     }}
                   >
                     Join Newsletter
-                  </a>
+                  </button>
                 </>
               )}
             </div>

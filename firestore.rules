@@ -13,8 +13,10 @@ service cloud.firestore {
     }
     
     match /newsletter_subscribers/{subscriberId} {
+      // Allow anyone (even unauthenticated) to create if email is present and non-empty
       allow create: if request.resource.data.email is string &&
-                      request.resource.data.email.size() > 0;
+                      request.resource.data.email.size() > 0 &&
+                      (request.auth == null || request.auth != null);
       allow read, update, delete: if isAdmin();
     }
     
