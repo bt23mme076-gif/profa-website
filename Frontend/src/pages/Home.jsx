@@ -39,7 +39,7 @@ const UNIFORM_IMAGE_WRAP =
   "w-full h-[160px] sm:h-[180px] md:h-[200px] overflow-hidden bg-gray-100 relative";
 
 const BOOK_IMAGE_WRAP =
-  "w-full aspect-[2/3] overflow-hidden bg-gray-100 relative";
+  "w-full aspect-[2/3] max-h-[320px] overflow-hidden bg-gray-100 relative";
 
 const UNIFORM_IMAGE =
   "w-full h-full object-cover transition-transform duration-700 group-hover:scale-110";

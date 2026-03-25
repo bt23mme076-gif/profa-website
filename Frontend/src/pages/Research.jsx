@@ -418,26 +418,50 @@ export default function Research() {
     }
   };
 
-  const phdStudents = {
-    chairperson: [
-      { name: "Ananya Syal (IIMA)", position: "Assistant Professor, IIM Amritsar" },
-      { name: "Vedant Dev (IIMA)", position: "Faculty, Ahmedabad University" },
-      { name: "Lokesh Malviya", position: "ABD (IIMA, OB area)" },
-      { name: "Anmol Basant", position: "ABD (IIMA, OB area)" },
-      { name: "Harish Premi", position: "ABD (IIMA, RJMCEI)" }
-    ],
-    member: [
-      "Bhumi Trivedi (HRM, IIMA)",
-      "Furkan Khan (RJMCEI, IIMA)",
-      "Parth Soni (RJMCEI, IIMA)",
-      "Sharad Sharma (IS area, IIMA) - Indian Railways",
-      "Samvet Kuril (RJMCEI, IIMA) - Faculty, Ahmedabad University",
-      "Nycil George (Strategy area, IIMA) - Faculty, IIM Kozhikode",
-      "Shiva Kakkar (OB area, IIMA) - Faculty, IIM Nagpur",
-      "Vijayta Doshi (OB area, IIMA) - Faculty, IIM Udaipur",
-      "Smriti Agarwalla (OB area, IIMA)",
-      "Ritika Singh (HRM area, Nirma University) - Faculty, DY Patil University"
-    ]
+  // Editable PhD Students (Firestore-backed)
+  const phdStudents = researchData?.phdStudents || { chairperson: [], member: [] };
+
+  // Admin handlers for PhD Students
+  const updatePhdStudents = async (newData) => {
+    try {
+      await updateDoc(doc(db, 'content', 'research'), { phdStudents: newData });
+    } catch (err) {
+      alert('Failed to update PhD students');
+    }
+  };
+
+  // Add, edit, delete for Chairperson
+  const addChairperson = (student) => {
+    updatePhdStudents({
+      ...phdStudents,
+      chairperson: [...phdStudents.chairperson, student]
+    });
+  };
+  const editChairperson = (idx, student) => {
+    const arr = [...phdStudents.chairperson];
+    arr[idx] = student;
+    updatePhdStudents({ ...phdStudents, chairperson: arr });
+  };
+  const deleteChairperson = (idx) => {
+    const arr = phdStudents.chairperson.filter((_, i) => i !== idx);
+    updatePhdStudents({ ...phdStudents, chairperson: arr });
+  };
+
+  // Add, edit, delete for Member
+  const addMember = (student) => {
+    updatePhdStudents({
+      ...phdStudents,
+      member: [...phdStudents.member, student]
+    });
+  };
+  const editMember = (idx, student) => {
+    const arr = [...phdStudents.member];
+    arr[idx] = student;
+    updatePhdStudents({ ...phdStudents, member: arr });
+  };
+  const deleteMember = (idx) => {
+    const arr = phdStudents.member.filter((_, i) => i !== idx);
+    updatePhdStudents({ ...phdStudents, member: arr });
   };
 
   const bookChapters = [
@@ -657,7 +681,6 @@ export default function Research() {
     if (!item) return 0;
     const y = item.year || item.date || '';
     const s = String(y).trim();
-    // try to extract a 4-digit year at start
     const m = s.match(/(\d{4})/);
     if (m) return parseInt(m[1], 10);
     const n = parseInt(s, 10);
@@ -688,6 +711,19 @@ export default function Research() {
   const displaySpecialIssues = (researchData?.special_issues && researchData.special_issues.length > 0)
     ? researchData.special_issues
     : specialIssues;
+
+  // ── CHANGE 1: Total publications = journal articles + cases + technical notes + book chapters/proceedings
+  const totalPublications =
+    displayPublications.length +
+    displayCases.length +
+    technicalNotes.length +
+    displayBookChapters.length;
+
+  // ── CHANGE 2: Year range is computed from journal articles only (as before)
+  const allYears = displayPublications.map(p => parseYear(p)).filter(y => y > 0);
+  const yearRange = allYears.length > 0
+    ? `${Math.min(...allYears)}–${Math.max(...allYears)}`
+    : '—';
 
   return (
     <div className="bg-white">
@@ -724,21 +760,33 @@ export default function Research() {
 
           {/* Publications Dashboard */}
           <div className="flex flex-wrap justify-center gap-6 mt-10 mb-2">
+            {/* CHANGED: Publications now counts all types combined */}
             <div className="bg-white rounded-xl shadow-md px-10 py-6 text-center min-w-[160px]">
-              <div className="text-3xl font-bold text-[#004B8D]">{displayPublications.length}</div>
+              <div className="text-3xl font-bold text-[#004B8D]">{totalPublications}</div>
               <div className="uppercase text-xs tracking-wider text-gray-400 mt-1">Publications</div>
             </div>
+
+            {/* Year Range — unchanged */}
             <div className="bg-white rounded-xl shadow-md px-10 py-6 text-center min-w-[160px]">
-              <div className="text-3xl font-bold text-[#004B8D]">
-                {displayPublications.length > 0 ? `${Math.min(...displayPublications.map(p => parseYear(p)))}–${Math.max(...displayPublications.map(p => parseYear(p)))}` : '—'}
-              </div>
+              <div className="text-3xl font-bold text-[#004B8D]">{yearRange}</div>
               <div className="uppercase text-xs tracking-wider text-gray-400 mt-1">Year Range</div>
             </div>
+
+            {/* CHANGED: Journals → Citations, linked to Google Scholar */}
             <div className="bg-white rounded-xl shadow-md px-10 py-6 text-center min-w-[160px]">
-              <div className="text-3xl font-bold text-[#004B8D]">
-                {Array.from(new Set(displayPublications.map(p => p.journal))).length}
-              </div>
-              <div className="uppercase text-xs tracking-wider text-gray-400 mt-1">Journals</div>
+              <a
+                href="https://scholar.google.co.in/citations?user=_kfodNoAAAAJ&hl=en"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block"
+              >
+                <div className="text-3xl font-bold text-[#004B8D] group-hover:text-[#f97316] transition-colors duration-200">
+                  3,540+
+                </div>
+                <div className="uppercase text-xs tracking-wider text-gray-400 mt-1 group-hover:text-[#f97316] transition-colors duration-200">
+                  Citations
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -1212,11 +1260,30 @@ export default function Research() {
               </h3>
               <div className="space-y-4">
                 {phdStudents.chairperson.map((student, index) => (
-                  <div key={index} className="border-l-4 border-[#004B8D] pl-4 py-2 hover:bg-[#dce8f5] transition-colors">
-                    <p className="font-['Inter'] font-semibold text-[#1a1a1a]">{student.name}</p>
-                    <p className="font-['Inter'] text-sm text-gray-600">{student.position}</p>
+                  <div key={index} className="border-l-4 border-[#004B8D] pl-4 py-2 hover:bg-[#dce8f5] transition-colors flex items-center justify-between">
+                    <div>
+                      <p className="font-['Inter'] font-semibold text-[#1a1a1a]">{student.name}</p>
+                      <p className="font-['Inter'] text-sm text-gray-600">{student.position}</p>
+                    </div>
+                    {isAdmin && (
+                      <div className="flex gap-2">
+                        <button onClick={() => {
+                          const name = prompt('Edit Name', student.name);
+                          const position = prompt('Edit Position', student.position);
+                          if (name && position) editChairperson(index, { name, position });
+                        }} className="text-blue-600 hover:underline">Edit</button>
+                        <button onClick={() => deleteChairperson(index)} className="text-red-500 hover:underline">Delete</button>
+                      </div>
+                    )}
                   </div>
                 ))}
+                {isAdmin && (
+                  <button onClick={() => {
+                    const name = prompt('Student Name (with institute)');
+                    const position = prompt('Position/Status');
+                    if (name && position) addChairperson({ name, position });
+                  }} className="mt-2 px-3 py-1 bg-[#004B8D] text-white rounded hover:bg-[#003366]">+ Add Chairperson</button>
+                )}
               </div>
             </motion.div>
 
@@ -1233,10 +1300,25 @@ export default function Research() {
               </h3>
               <div className="space-y-3">
                 {phdStudents.member.map((student, index) => (
-                  <div key={index} className="border-l-4 border-[#fb923c] pl-4 py-2 hover:bg-[#fff7ed] transition-colors">
+                  <div key={index} className="border-l-4 border-[#fb923c] pl-4 py-2 hover:bg-[#fff7ed] transition-colors flex items-center justify-between">
                     <p className="font-['Inter'] text-gray-700">{student}</p>
+                    {isAdmin && (
+                      <div className="flex gap-2">
+                        <button onClick={() => {
+                          const newVal = prompt('Edit Member', student);
+                          if (newVal) editMember(index, newVal);
+                        }} className="text-orange-600 hover:underline">Edit</button>
+                        <button onClick={() => deleteMember(index)} className="text-red-500 hover:underline">Delete</button>
+                      </div>
+                    )}
                   </div>
                 ))}
+                {isAdmin && (
+                  <button onClick={() => {
+                    const newVal = prompt('Member Name (with details)');
+                    if (newVal) addMember(newVal);
+                  }} className="mt-2 px-3 py-1 bg-[#fb923c] text-white rounded hover:bg-[#ea580c]">+ Add Member</button>
+                )}
               </div>
             </motion.div>
           </div>
@@ -1415,7 +1497,7 @@ function BookChapterForm({ chapter, onSave, onCancel }) {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-[#004B8D] hover:bg-[#003870] text-white rounded-lg text-sm font-semibold"
+          className="px-4 py-2 bg-[#fb923c] hover:bg-[#ea580c] text-white rounded-lg text-sm font-semibold"
         >
           Save Chapter
         </button>
