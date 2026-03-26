@@ -429,7 +429,7 @@ export default function Blog() {
 
                     <div className="flex flex-col justify-between p-7 sm:p-10">
                       <div>
-                        <div className="flex flex-wrap gap-3 text-xs text-[#60758d]">
+                        <div className="flex flex-wrap gap-3 text-xs text-[#60758d] justify-center">
                           {featuredBlog.date && (
                             <span className="inline-flex items-center gap-2 rounded-full bg-[#eef4fa] px-3 py-1.5 font-['Inter']">
                               <FiCalendar size={12} />
@@ -448,7 +448,7 @@ export default function Blog() {
                           )}
                         </div>
 
-                        <div className="mt-5 font-['Playfair_Display'] text-[clamp(2rem,3vw,3.25rem)] font-semibold leading-[1.05] text-[#10233d]">
+                        <div className="mt-5 font-['Playfair_Display'] text-[clamp(2rem,3vw,3.25rem)] font-semibold leading-[1.05] text-[#10233d] text-center">
                           {isAdmin ? (
                             <EditableText
                               collection="blogs"
@@ -478,7 +478,7 @@ export default function Blog() {
                               modalClassName="rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl"
                             />
                           ) : (
-                            <p className="font-['Playfair_Display'] text-lg italic leading-8 text-[#54687e]">
+                            <p className="font-['Playfair_Display'] text-lg italic leading-8 text-[#54687e] text-center">
                               {featuredBlog.excerpt}
                             </p>
                           )}
@@ -606,7 +606,7 @@ export default function Blog() {
                         </div>
 
                         <div className="space-y-5 p-6">
-                          <div className="flex flex-wrap gap-3 text-xs text-[#60758d]">
+                          <div className="flex flex-wrap gap-3 text-xs text-[#60758d] justify-center">
                             {blog.date && (
                               <span className="inline-flex items-center gap-2 font-['Inter']">
                                 <FiCalendar size={12} />
@@ -619,7 +619,7 @@ export default function Blog() {
                             </span>
                           </div>
 
-                          <div className="font-['Playfair_Display'] text-[1.7rem] font-semibold leading-tight text-[#10233d]">
+                            <div className="font-['Playfair_Display'] text-[1.7rem] font-semibold leading-tight text-[#10233d] text-center">
                             {isAdmin ? (
                               <EditableText
                                 collection="blogs"
@@ -643,12 +643,12 @@ export default function Blog() {
                               docId={blog.id}
                               field="excerpt"
                               defaultValue={blog.excerpt}
-                              className="font-['Inter'] text-sm leading-7 text-[#5f748f]"
+                              className="font-['Inter'] text-sm leading-7 text-[#5f748f] text-center"
                               multiline
                               modalClassName="rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl"
                             />
                           ) : (
-                            <p className="font-['Inter'] text-sm leading-7 text-[#5f748f]">
+                            <p className="font-['Inter'] text-sm leading-7 text-[#5f748f] text-center">
                               {blog.excerpt}
                             </p>
                           )}
