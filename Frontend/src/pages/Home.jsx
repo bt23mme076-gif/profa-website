@@ -977,7 +977,7 @@ export default function Home() {
     viewport={viewportOptions}
     variants={fadeInUp}
   >
-    <h2 className={`${GLOBAL_HEADING} text-[#111111] mb-4 transition-colors duration-300`}>
+    <h2 className={`${GLOBAL_HEADING} uniform-heading text-[#111111] mb-4 transition-colors duration-300`}>
       Trainings Delivered For
     </h2>
     <div className="w-24 h-1 bg-[#004B8D] rounded-full mx-auto mb-6 group-hover:bg-[#F5C400] group-hover:w-32 transition-all duration-300" />
@@ -1049,7 +1049,7 @@ export default function Home() {
             <EditableText
               field="books_heading"
               defaultValue={data.books_heading}
-              className={`${GLOBAL_HEADING} text-[#111111] block mb-3`}
+              className={`${GLOBAL_HEADING} uniform-heading text-[#111111] block mb-3`}
             />
             <div className="w-24 h-1 bg-[#004B8D] rounded-full mx-auto group-hover:bg-[#F5C400] group-hover:w-32 transition-all duration-300" />
           </motion.div>
