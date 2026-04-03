@@ -496,13 +496,6 @@ export default function Blog() {
                               <FiArrowRight size={15} />
                             </Link>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => setOpenBlogId(openBlogId === featuredBlog.id ? null : featuredBlog.id)}
-                            className="inline-flex items-center gap-2 rounded-full border border-[#bfd0e4] px-6 py-3 font-['Inter'] text-sm font-semibold uppercase tracking-[0.16em] text-[#10233d] transition-colors duration-200 hover:border-[#004b8d] hover:text-[#004b8d]"
-                          >
-                            {openBlogId === featuredBlog.id ? 'Hide preview' : 'Quick preview'}
-                          </button>
                           {isAdmin && (
                             <button
                               type="button"
@@ -676,14 +669,6 @@ export default function Blog() {
                                 {blog.showOnHome ? 'On Home ✔' : 'Feature on Home'}
                               </button>
                             )}
-
-                            <button
-                              type="button"
-                              onClick={() => setOpenBlogId(openBlogId === blog.id ? null : blog.id)}
-                              className="font-['Inter'] text-xs font-semibold uppercase tracking-[0.16em] text-[#6f8298] transition-colors duration-200 hover:text-[#004b8d]"
-                            >
-                              {openBlogId === blog.id ? 'Close preview' : 'Preview'}
-                            </button>
                           </div>
 
                           {openBlogId === blog.id && (

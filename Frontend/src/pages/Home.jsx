@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import EditableText from '../components/EditableText';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { useFirestoreDoc } from '../hooks/useFirestoreDoc';
 import { useFirestoreCollection } from '../hooks/useFirestoreCollection';
 import { subscribeToNewsletter } from '../utils/newsletter';
 import { where, limit } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -120,6 +121,8 @@ const FALLBACK_TESTIMONIALS = [
   }
 ];
 
+const COURSE_CONTAINER = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"; // Updated to match the blog section layout with proper spacing
+
 export default function Home() {
   const { isAdmin } = useAuth();
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -133,15 +136,16 @@ export default function Home() {
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
     );
     return match ? match[1] : null;
-      // Ref for newsletter section
-      const newsletterRef = useRef(null);
-  
-      // Handler to scroll to newsletter
-      const scrollToNewsletter = () => {
-        if (newsletterRef.current) {
-          newsletterRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      };
+  };
+
+  // Ref for newsletter section
+  const newsletterRef = useRef(null);
+
+  // Handler to scroll to newsletter
+  const scrollToNewsletter = () => {
+    if (newsletterRef.current) {
+      newsletterRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const formatDate = (dateVal) => {
@@ -379,263 +383,263 @@ export default function Home() {
   return (
     <div className="bg-white overflow-x-hidden">
       {/* 1. HERO */}
-     {/* 1. HERO */}
-<section
-  className="grid lg:grid-cols-2 items-stretch px-4 sm:px-6 lg:px-16 py-8 lg:py-0 gap-8 lg:gap-0 relative overflow-hidden hero-section"
-  style={{ background: 'linear-gradient(135deg, #1a2d52 0%, #1e3461 40%, #162647 100%)', minHeight: 'clamp(640px, 82vh, 920px)' }}
->
-  <style>{`
-    /* Static yellow underline with hover color */
-    .hero-shimmer-line {
-      height: 3px;
-      width: clamp(120px, 12vw, 260px);
-      background: #F5C400; /* solid yellow */
-      border-radius: 9999px;
-      margin-top: 8px;
-      transition: background-color 0.2s ease, transform 0.15s ease;
-      cursor: pointer;
-    }
-    .hero-shimmer-line:hover {
-      background: #004B8D; /* blue on hover */
-    }
+      <section
+        className="grid lg:grid-cols-2 items-stretch px-4 sm:px-6 lg:px-16 py-8 lg:py-0 gap-8 lg:gap-0 relative overflow-hidden hero-section"
+        style={{ background: 'linear-gradient(135deg, #1a2d52 0%, #1e3461 40%, #162647 100%)', minHeight: 'clamp(640px, 82vh, 920px)' }}
+      >
+        <style>{`
+          /* Static yellow underline with hover color */
+          .hero-shimmer-line {
+            height: 3px;
+            width: clamp(120px, 12vw, 260px);
+            background: #F5C400; /* solid yellow */
+            border-radius: 9999px;
+            margin-top: 8px;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+            cursor: pointer;
+          }
+          .hero-shimmer-line:hover {
+            background: #004B8D; /* blue on hover */
+          }
 
-    /* Photo ring: replace gradient glow with single solid yellow border */
-    .hero-photo-ring {
-      position: relative;
-      border-radius: 1rem;
-      transition: transform 0.2s ease;
-    }
-    .hero-photo-ring::before {
-      content: '';
-      position: absolute;
-      inset: -6px;
-      border-radius: 1.25rem;
-      background: #ffd700; /* solid yellow */
-      opacity: 0; /* hidden by default, revealed on hover */
-      transform: scale(0.96);
-      transition: opacity 0.36s ease, transform 0.36s ease, box-shadow 0.36s ease;
-      box-shadow: 0 10px 30px rgba(255, 215, 0, 0.06);
-      z-index: -1;
-    }
-    .hero-photo-ring:hover::before,
-    .hero-photo-ring:focus-within::before {
-      opacity: 1;
-      transform: scale(1.06);
-      /* only yellow glow on hover, no gradient or blue */
-      box-shadow: 0 14px 40px rgba(255, 215, 0, 0.18);
-    }
-    .hero-photo-ring:hover .hero-profile-photo,
-    .hero-photo-ring:focus-within .hero-profile-photo {
-      transform: scale(1.02);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
-    }
-    .hero-profile-photo {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      border-radius: 1rem;
-      overflow: hidden;
-    }
+          /* Photo ring: replace gradient glow with single solid yellow border */
+          .hero-photo-ring {
+            position: relative;
+            border-radius: 1rem;
+            transition: transform 0.2s ease;
+          }
+          .hero-photo-ring::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 1.25rem;
+            background: #ffd700; /* solid yellow */
+            opacity: 0; /* hidden by default, revealed on hover */
+            transform: scale(0.96);
+            transition: opacity 0.36s ease, transform 0.36s ease, box-shadow 0.36s ease;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.06);
+            z-index: -1;
+          }
+          .hero-photo-ring:hover::before,
+          .hero-photo-ring:focus-within::before {
+            opacity: 1;
+            transform: scale(1.06);
+            /* only yellow glow on hover, no gradient or blue */
+            box-shadow: 0 14px 40px rgba(255, 215, 0, 0.18);
+          }
+          .hero-photo-ring:hover .hero-profile-photo,
+          .hero-photo-ring:focus-within .hero-profile-photo {
+            transform: scale(1.02);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+          }
+          .hero-profile-photo {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 1rem;
+            overflow: hidden;
+          }
 
-    /* Button glow effects */
-    .hero-btn-primary {
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-    .hero-btn-primary::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, #FFD700, #F5C400, #FFA500);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      border-radius: inherit;
-    }
-    .hero-btn-primary:hover::after {
-      opacity: 1;
-    }
-    .hero-btn-primary:hover {
-      box-shadow: 0 0 20px rgba(245, 196, 0, 0.5), 0 6px 20px rgba(0,0,0,0.3);
-      transform: translateY(-2px) scale(1.04);
-    }
-    .hero-btn-primary span {
-      position: relative;
-      z-index: 1;
-    }
+          /* Button glow effects */
+          .hero-btn-primary {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+          }
+          .hero-btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #FFD700, #F5C400, #FFA500);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: inherit;
+          }
+          .hero-btn-primary:hover::after {
+            opacity: 1;
+          }
+          .hero-btn-primary:hover {
+            box-shadow: 0 0 20px rgba(245, 196, 0, 0.5), 0 6px 20px rgba(0,0,0,0.3);
+            transform: translateY(-2px) scale(1.04);
+          }
+          .hero-btn-primary span {
+            position: relative;
+            z-index: 1;
+          }
 
-    /* Credential pills */
-    .hero-credential {
-      transition: all 0.3s ease;
-      cursor: default;
-    }
-    .hero-credential:hover {
-      background: rgba(245, 196, 0, 0.15);
-      border-color: rgba(245, 196, 0, 0.6);
-      color: #F5C400;
-      transform: translateX(4px);
-    }
+          /* Credential pills */
+          .hero-credential {
+            transition: all 0.3s ease;
+            cursor: default;
+          }
+          .hero-credential:hover {
+            background: rgba(245, 196, 0, 0.15);
+            border-color: rgba(245, 196, 0, 0.6);
+            color: #F5C400;
+            transform: translateX(4px);
+          }
 
-    /* Mobile adjustments to improve hero layout on small screens */
-    @media (max-width: 640px) {
-      .hero-section {
-        /* Horizontally split the screen: top = image, bottom = text */
-        min-height: calc(100vh - 64px);
-        padding-top: 0;
-        padding-bottom: 0;
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr;
-        align-items: stretch;
-        gap: 0;
-      }
-      .hero-shimmer-line {
-        width: 96px;
-      }
-      .hero-image-col { grid-row: 1; display:flex; align-items:center; justify-content:center; padding-top: 12px; }
-      .hero-text-col { grid-row: 2; display:flex; align-items:center; }
-      .hero-profile-photo {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        object-fit: cover;
-        border-radius: 12px;
-      }
-      /* Make the hero image much larger on mobile: fill the top half */
-      .hero-image-col .hero-profile-photo {
-        max-width: 100% !important;
-        width: 100% !important;
-        height: 52vh !important;
-        object-fit: cover !important;
-        border-radius: 10px;
-      }
-      .hero-photo-ring {
-        display: flex;
-        justify-content: center;
-        padding-bottom: 8px;
-      }
-      .hero-title {
-        font-size: 1.5rem !important;
-        line-height: 1.02 !important;
-        margin-bottom: 6px;
-      }
-      .hero-description { display:block; font-size:0.9rem !important; }
-      .hero-text-col .flex { width: 100%; }
-      /* ensure text column uses full available width */
-      .hero-section > .flex {
-        max-width: 100% !important;
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-      .hero-greeting { font-size: 0.675rem !important; }
-      .hero-name { font-size: 1.05rem !important; }
-      .hero-description { display: none; }
-      .hero-btn-primary {
-        padding: 0.5rem 0.75rem !important;
-      }
-    }
-  `}</style>
+          /* Mobile adjustments to improve hero layout on small screens */
+          @media (max-width: 640px) {
+            .hero-section {
+              /* Horizontally split the screen: top = image, bottom = text */
+              min-height: calc(100vh - 64px);
+              padding-top: 0;
+              padding-bottom: 0;
+              display: grid;
+              grid-template-columns: 1fr;
+              grid-template-rows: 1fr 1fr;
+              align-items: stretch;
+              gap: 0;
+            }
+            .hero-shimmer-line {
+              width: 96px;
+            }
+            .hero-image-col { grid-row: 1; display:flex; align-items:center; justify-content:center; padding-top: 12px; }
+            .hero-text-col { grid-row: 2; display:flex; align-items:center; }
+            .hero-profile-photo {
+              width: 100%;
+              height: 100%;
+              max-height: 100%;
+              object-fit: cover;
+              border-radius: 12px;
+            }
+            /* Make the hero image much larger on mobile: fill the top half */
+            .hero-image-col .hero-profile-photo {
+              max-width: 100% !important;
+              width: 100% !important;
+              height: 52vh !important;
+              object-fit: cover !important;
+              border-radius: 10px;
+            }
+            .hero-photo-ring {
+              display: flex;
+              justify-content: center;
+              padding-bottom: 8px;
+            }
+            .hero-title {
+              font-size: 1.5rem !important;
+              line-height: 1.02 !important;
+              margin-bottom: 6px;
+            }
+            .hero-description { display:block; font-size:0.9rem !important; }
+            .hero-text-col .flex { width: 100%; }
+            /* ensure text column uses full available width */
+            .hero-section > .flex {
+              max-width: 100% !important;
+              padding-left: 0.75rem;
+              padding-right: 0.75rem;
+            }
+            .hero-greeting { font-size: 0.675rem !important; }
+            .hero-name { font-size: 1.05rem !important; }
+            .hero-description { display: none; }
+            .hero-btn-primary {
+              padding: 0.5rem 0.75rem !important;
+            }
+          }
+        `}</style>
 
-  {/* Subtle background orbs */}
-  <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#004B8D]/10 rounded-full blur-3xl pointer-events-none" />
-  <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#F5C400]/5 rounded-full blur-3xl pointer-events-none" />
+        {/* Subtle background orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#004B8D]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#F5C400]/5 rounded-full blur-3xl pointer-events-none" />
 
-  <div className="flex flex-col justify-center space-y-4 sm:space-y-5 w-full h-full relative z-10 order-1 lg:order-1 hero-text-col"
-    style={{ maxWidth: 'min(640px, 54vw)' }}>
-    <motion.div
-      initial={{ opacity: 0, y: 45 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <EditableText
-        field="hero_greeting"
-        defaultValue={data.hero_greeting}
-        className="text-sm sm:text-base md:text-lg font-['Inter'] font-semibold tracking-[0.25em] uppercase text-[#F5C400] mb-4 block"
-      />
+        <div className="flex flex-col justify-center space-y-4 sm:space-y-5 w-full h-full relative z-10 order-1 lg:order-1 hero-text-col"
+          style={{ maxWidth: 'min(640px, 54vw)' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 45 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <EditableText
+              field="hero_greeting"
+              defaultValue={data.hero_greeting}
+              className="text-sm sm:text-base md:text-lg font-['Inter'] font-semibold tracking-[0.25em] uppercase text-[#F5C400] mb-4 block hero-greeting"
+            />
 
-      <EditableText
-        field="hero_title"
-        defaultValue={data.hero_title || 'Creating Happy Leaders'}
-        className={`${GLOBAL_HEADING} text-white leading-[1.05] mb-2 block hero-title`}
-      />
-      {/* Animated shimmer underline */}
-      <div className="hero-shimmer-line mb-3" />
+            <EditableText
+              field="hero_title"
+              defaultValue={data.hero_title || 'Creating Happy Leaders'}
+              className={`${GLOBAL_HEADING} text-white leading-[1.05] mb-2 block hero-title`}
+            />
+            {/* Animated shimmer underline */}
+            <div className="hero-shimmer-line mb-3" />
 
-      <EditableText
-        field="hero_name"
-        defaultValue={data.hero_name}
-        className={`${GLOBAL_HEADING} text-[#F5C400] font-semibold mb-4 block`}
-      />
+            <EditableText
+              field="hero_name"
+              defaultValue={data.hero_name}
+              className={`${GLOBAL_HEADING} text-[#F5C400] font-semibold mb-4 block hero-name`}
+            />
 
-      <EditableText
-        field="hero_description"
-        defaultValue={data.hero_description}
-        className={`${GLOBAL_BODY} text-gray-300 leading-relaxed block mb-4`}
-        multiline={true}
-      />
+            <EditableText
+              field="hero_description"
+              defaultValue={data.hero_description}
+              className={`${GLOBAL_BODY} text-gray-300 leading-relaxed block mb-4 hero-description`}
+              multiline={true}
+            />
 
-      <div className="flex items-center gap-4">
-      </div>
-    </motion.div>
+            <div className="flex items-center gap-4">
+            </div>
+          </motion.div>
 
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5, duration: 0.7 }}
-      className="space-y-4"
-    >
-      <div className="flex flex-wrap gap-3 justify-start">
-        <div className="relative inline-block">
-          <Link to="/about">
-            <button className="hero-btn-primary bg-[#F5C400] inline-flex items-center justify-center px-6 py-3.5 font-['Inter'] font-bold text-[#0B1628] text-sm rounded-md shadow-lg">
-              {!isAdmin ? (
-                <span
-                  className="text-sm sm:text-base font-['Inter'] font-bold text-[#0B1628]"
-                  dangerouslySetInnerHTML={{ __html: renderRichText(data?.hero_cta_text || 'Get in Touch') }}
-                />
-              ) : (
-                <span className="opacity-0">{data?.hero_cta_text || 'Get in Touch'}</span>
-              )}
-            </button>
-          </Link>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.7 }}
+            className="space-y-4"
+          >
+            <div className="flex flex-wrap gap-3 justify-start">
+              <div className="relative inline-block">
+                <Link to="/about">
+                  <button className="hero-btn-primary bg-[#F5C400] inline-flex items-center justify-center px-6 py-3.5 font-['Inter'] font-bold text-[#0B1628] text-sm rounded-md shadow-lg">
+                    {!isAdmin ? (
+                      <span
+                        className="text-sm sm:text-base font-['Inter'] font-bold text-[#0B1628]"
+                        dangerouslySetInnerHTML={{ __html: renderRichText(data?.hero_cta_text || 'Get in Touch') }}
+                      />
+                    ) : (
+                      <span className="opacity-0">{data?.hero_cta_text || 'Get in Touch'}</span>
+                    )}
+                  </button>
+                </Link>
 
-          {/* Editable overlay placed outside the interactive Link/button to avoid nested interactive elements */}
-          {isAdmin && (
-            <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-              <div className="flex items-center justify-center w-full pointer-events-auto">
-                <EditableText
-                  collection="content"
-                  docId="home"
-                  field="hero_cta_text"
-                  defaultValue={data?.hero_cta_text || 'Get in Touch'}
-                  className="w-full inline-block text-sm sm:text-base font-['Inter'] font-bold text-[#0B1628] text-center px-2"
-                />
+                {/* Editable overlay placed outside the interactive Link/button to avoid nested interactive elements */}
+                {isAdmin && (
+                  <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
+                    <div className="flex items-center justify-center w-full pointer-events-auto">
+                      <EditableText
+                        collection="content"
+                        docId="home"
+                        field="hero_cta_text"
+                        defaultValue={data?.hero_cta_text || 'Get in Touch'}
+                        className="w-full inline-block text-sm sm:text-base font-['Inter'] font-bold text-[#0B1628] text-center px-2"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </motion.div>
         </div>
-      </div>
-    </motion.div>
-  </div>
 
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95, x: 30 }}
-    animate={{ opacity: 1, scale: 1, x: 0 }}
-    transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-    className="relative z-10 flex items-center justify-center h-full order-2 lg:order-2 hero-image-col"
-  >
-    <div className="hero-photo-ring">
-    <div className="hero-profile-photo w-full aspect-[3/4] shadow-[0_20px_40px_rgba(0,0,0,0.4)] bg-[#1a2d52] overflow-hidden" style={{ maxWidth: 'min(430px, 38vw)' }}>
-        <img
-          src={data.hero_image || '/prof-gupta.jpg'}
-          alt="Prof. Vishal Gupta"
-          className="w-full h-full object-cover object-top"
-          onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/600x800/1a2d4f/ffffff?text=Prof.+Vishal+Gupta';
-          }}
-        />
-      </div>
-    </div>
-  </motion.div>
-</section>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, x: 30 }}
+          animate={{ opacity: 1, scale: 1, x: 0 }}
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+          className="relative z-10 flex items-center justify-center h-full order-2 lg:order-2 hero-image-col"
+        >
+          <div className="hero-photo-ring">
+            <div className="hero-profile-photo w-full aspect-[3/4] shadow-[0_20px_40px_rgba(0,0,0,0.4)] bg-[#1a2d52] overflow-hidden" style={{ maxWidth: 'min(430px, 38vw)' }}>
+                <img
+                  src={data.hero_image || '/prof-gupta.jpg'}
+                  alt="Prof. Vishal Gupta"
+                  className="w-full h-full object-cover object-top"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/600x800/1a2d4f/ffffff?text=Prof.+Vishal+Gupta';
+                  }}
+                />
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* 2. COURSES */}
       <section id="courses" className="full-screen-section bg-white pt-6 pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -655,7 +659,7 @@ export default function Home() {
           </motion.div>
 
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto"
+            className={COURSE_CONTAINER}
             initial="hidden"
             whileInView="visible"
             viewport={viewportOptions}
@@ -702,6 +706,7 @@ export default function Home() {
                       <motion.button
                         whileHover={{ backgroundColor: '#004B8D' }}
                         className={UNIFORM_BUTTON}
+                        onClick={() => navigate('/courses')}
                       >
                         EXPLORE COURSE
                       </motion.button>
@@ -769,7 +774,7 @@ export default function Home() {
       </section>
 
       {/* 3. BLOGS */}
-            <section id="blog" className="py-2 px-4 sm:px-6 lg:px-16 bg-[#ebf2f8]">
+      <section id="blog" className="py-2 px-4 sm:px-6 lg:px-16 bg-[#ebf2f8]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             className="mb-4 group"
@@ -779,7 +784,7 @@ export default function Home() {
             variants={fadeInUp}
           >
             <div className="flex items-center justify-center flex-wrap gap-4 mb-4">
-                <div className="group text-center w-full">
+              <div className="group text-center w-full">
                 <EditableText
                   field="blog_heading"
                   defaultValue={data.blog_heading || 'My Blogs'}
@@ -797,8 +802,6 @@ export default function Home() {
             viewport={viewportOptions}
             variants={fadeInLeft}
           >
-          
-            
             <div className="h-px flex-1 bg-gray-200" />
           </motion.div>
 
@@ -901,141 +904,142 @@ export default function Home() {
             <div className="w-24 h-1 bg-[#004B8D] rounded-full mx-auto group-hover:bg-[#F5C400] group-hover:w-32 transition-all duration-300" />
           </motion.div>
 
-        {(() => {
-          const allItems = testimonials && testimonials.length > 0 ? testimonials : FALLBACK_TESTIMONIALS;
-          const totalPages = Math.ceil(allItems.length / 3);
-          const currentPage = testimonialPage % totalPages;
-          const currentItems = allItems.slice(currentPage * 3, currentPage * 3 + 3);
+          {(() => {
+            const allItems = testimonials && testimonials.length > 0 ? testimonials : FALLBACK_TESTIMONIALS;
+            const totalPages = Math.ceil(allItems.length / 3);
+            const currentPage = testimonialPage % totalPages;
+            const currentItems = allItems.slice(currentPage * 3, currentPage * 3 + 3);
 
-          return (
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                {currentItems.map((t, i) => (
-                  <div
-                    key={`${currentPage}-${i}`}
-                    className="w-full max-w-[470px] mx-auto bg-white rounded-[32px] overflow-hidden border border-gray-200 shadow-sm flex flex-col h-full min-h-[380px] p-6"
-                  >
-                    <div className="flex-1">
-                      <p className="text-base font-['Inter'] text-gray-700 leading-relaxed">
-                        "{t.quote}"
-                      </p>
+            return (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                  {currentItems.map((t, i) => (
+                    <div
+                      key={`${currentPage}-${i}`}
+                      className="w-full max-w-[470px] mx-auto bg-white rounded-[32px] overflow-hidden border border-gray-200 shadow-sm flex flex-col h-full min-h-[380px] p-6"
+                    >
+                      <div className="flex-1">
+                        <p className="text-base font-['Inter'] text-gray-700 leading-relaxed">
+                          "{t.quote}"
+                        </p>
+                      </div>
+
+                      <div className="mt-6 pt-5 border-t border-gray-200">
+                        <p className="text-sm font-['Inter'] font-semibold text-[#004B8D]">
+                          — {t.author}
+                        </p>
+                        <p className="text-sm font-['Inter'] text-gray-400 mt-1">
+                          {t.role}
+                          {t.organization ? `, ${t.organization}` : ''}
+                        </p>
+                      </div>
                     </div>
-
-                    <div className="mt-6 pt-5 border-t border-gray-200">
-                      <p className="text-sm font-['Inter'] font-semibold text-[#004B8D]">
-                        — {t.author}
-                      </p>
-                      <p className="text-sm font-['Inter'] text-gray-400 mt-1">
-                        {t.role}
-                        {t.organization ? `, ${t.organization}` : ''}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-8">
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setTestimonialPage(i)}
-                      style={{ transition: 'all 0.3s' }}
-                      className={`h-2 rounded-full ${i === currentPage ? 'w-6 bg-[#004B8D]' : 'w-2 bg-gray-300'}`}
-                      aria-label={`Go to page ${i + 1}`}
-                    />
                   ))}
                 </div>
-              )}
-            </div>
-          );
-        })()}
+
+                {totalPages > 1 && (
+                  <div className="flex justify-center gap-2 mt-8">
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setTestimonialPage(i)}
+                        style={{ transition: 'all 0.3s' }}
+                        className={`h-2 rounded-full ${i === currentPage ? 'w-6 bg-[#004B8D]' : 'w-2 bg-gray-300'}`}
+                        aria-label={`Go to page ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </section>
 
-   {/* 5. TRAININGS DELIVERED */}
-<section id="trainings" className="full-screen-section bg-[#ebf2f8] min-h-screen">
-  <style>{`
-    @keyframes logos-scroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    .logos-track {
-      display: flex;
-      align-items: center;
-      width: max-content;
-      animation: logos-scroll 30s linear infinite;
-    }
-    .logos-track:hover {
-      animation-play-state: paused;
-    }
-  `}</style>
-  <motion.div
-    className="max-w-4xl mx-auto px-4 sm:px-6 text-center mb-12 group"
-    initial="hidden"
-    whileInView="visible"
-    viewport={viewportOptions}
-    variants={fadeInUp}
-  >
-    <h2 className={`${GLOBAL_HEADING} uniform-heading text-[#111111] mb-4 transition-colors duration-300`}>
-      Trainings Delivered For
-    </h2>
-    <div className="w-24 h-1 bg-[#004B8D] rounded-full mx-auto mb-6 group-hover:bg-[#F5C400] group-hover:w-32 transition-all duration-300" />
-    <p className="text-base sm:text-lg text-gray-600 font-['Inter'] max-w-3xl mx-auto">
-      From leading academic institutions to global corporations, Prof. Gupta has delivered transformative training programs.
-    </p>
-  </motion.div>
-  {(() => {
-    const logoItems =
-      trainingLogos && trainingLogos.length > 0
-        ? trainingLogos
-        : [
-            { id: 'f1', name: 'IIM Ahmedabad', logoUrl: '' },
-            { id: 'f2', name: 'Coursera', logoUrl: '' },
-            { id: 'f3', name: 'Delhi Public Schools', logoUrl: '' },
-            { id: 'f4', name: 'Rushil Decor', logoUrl: '' },
-            { id: 'f5', name: 'University of Northern Iowa', logoUrl: '' },
-            { id: 'f6', name: 'University of Mumbai', logoUrl: '' },
-            { id: 'f7', name: 'ISRO', logoUrl: '' },
-            { id: 'f8', name: 'Larsen & Toubro', logoUrl: '' }
-          ];
-    const doubled = [...logoItems, ...logoItems];
-    return (
-      <div className="overflow-hidden w-screen -mx-4 sm:-mx-6 lg:-mx-8">
-        <div className="logos-track px-4 sm:px-6 lg:px-8">
-          {doubled.map((logo, i) => (
-            <div
-              key={`logo-${i}`}
-              className="flex-shrink-0 flex items-center justify-center h-24 lg:h-32 px-10 py-5 mx-4 bg-white rounded-lg shadow-md border border-gray-200"
-              style={{ minWidth: '200px' }}
-            >
-              {logo.logoUrl ? (
-                <>
-                  <img
-                    src={logo.logoUrl}
-                    alt={logo.name}
-                    className="max-h-full w-auto object-contain"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'block';
-                    }}
-                  />
-                  <span className="font-['Inter'] font-bold text-gray-700 text-center hidden text-sm">
-                    {logo.name}
-                  </span>
-                </>
-              ) : (
-                <span className="font-['Inter'] font-bold text-gray-700 text-center text-sm lg:text-lg whitespace-nowrap">
-                  {logo.name}
-                </span>
-              )}
+      {/* 5. TRAININGS DELIVERED */}
+      <section id="trainings" className="full-screen-section bg-[#ebf2f8] min-h-screen">
+        <style>{`
+          @keyframes logos-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .logos-track {
+            display: flex;
+            align-items: center;
+            width: max-content;
+            animation: logos-scroll 30s linear infinite;
+          }
+          .logos-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+        <motion.div
+          className="max-w-4xl mx-auto px-4 sm:px-6 text-center mb-12 group"
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOptions}
+          variants={fadeInUp}
+        >
+          <h2 className={`${GLOBAL_HEADING} uniform-heading text-[#111111] mb-4 transition-colors duration-300`}>
+            Trainings Delivered For
+          </h2>
+          <div className="w-24 h-1 bg-[#004B8D] rounded-full mx-auto mb-6 group-hover:bg-[#F5C400] group-hover:w-32 transition-all duration-300" />
+          <p className="text-base sm:text-lg text-gray-600 font-['Inter'] max-w-3xl mx-auto">
+            From leading academic institutions to global corporations, Prof. Gupta has delivered transformative training programs.
+          </p>
+        </motion.div>
+        {(() => {
+          const logoItems =
+            trainingLogos && trainingLogos.length > 0
+              ? trainingLogos
+              : [
+                  { id: 'f1', name: 'IIM Ahmedabad', logoUrl: '' },
+                  { id: 'f2', name: 'Coursera', logoUrl: '' },
+                  { id: 'f3', name: 'Delhi Public Schools', logoUrl: '' },
+                  { id: 'f4', name: 'Rushil Decor', logoUrl: '' },
+                  { id: 'f5', name: 'University of Northern Iowa', logoUrl: '' },
+                  { id: 'f6', name: 'University of Mumbai', logoUrl: '' },
+                  { id: 'f7', name: 'ISRO', logoUrl: '' },
+                  { id: 'f8', name: 'Larsen & Toubro', logoUrl: '' }
+                ];
+          const doubled = [...logoItems, ...logoItems];
+          return (
+            <div className="overflow-hidden w-screen -mx-4 sm:-mx-6 lg:-mx-8">
+              <div className="logos-track px-4 sm:px-6 lg:px-8">
+                {doubled.map((logo, i) => (
+                  <div
+                    key={`logo-${i}`}
+                    className="flex-shrink-0 flex items-center justify-center h-24 lg:h-32 px-10 py-5 mx-4 bg-white rounded-lg shadow-md border border-gray-200"
+                    style={{ minWidth: '200px' }}
+                  >
+                    {logo.logoUrl ? (
+                      <>
+                        <img
+                          src={logo.logoUrl}
+                          alt={logo.name}
+                          className="max-h-full w-auto object-contain"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
+                        />
+                        <span className="font-['Inter'] font-bold text-gray-700 text-center hidden text-sm">
+                          {logo.name}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="font-['Inter'] font-bold text-gray-700 text-center text-sm lg:text-lg whitespace-nowrap">
+                        {logo.name}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
-    );
-  })()}
-</section>
+          );
+        })()}
+      </section>
+
       {/* 6. BOOKS */}
       <section id="books" className="full-screen-section bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -1234,7 +1238,7 @@ export default function Home() {
       </section>
 
       {/* 8. NEWSLETTER */}
-      <section id="newsletter" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-16 bg-[#ffffff]">
+      <section id="newsletter" ref={newsletterRef} className="py-12 sm:py-16 px-4 sm:px-6 lg:px-16 bg-[#ffffff]">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-start">
           <motion.div
             initial="hidden"

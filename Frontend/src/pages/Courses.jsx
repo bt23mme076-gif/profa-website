@@ -16,16 +16,6 @@ export default function Courses() {
     mgmt_heading: 'Management Courses',
     featured_heading: 'Featured Courses',
     featured_subtitle: 'Comprehensive online courses combining science, practice, and ancient wisdom',
-    happiness_title: 'HAPPINESS: Science, Practice and Ancient Indian Wisdom',
-    happiness_desc: 'Explore how to become a happy being—successful and at peace. This unique course combines evidence from science, practical well-being techniques, and lessons from Indian wisdom storehouses: the Upanishads, the Gita, and the Yoga Sutras.',
-    happiness_b1: 'Evidence from science',
-    happiness_b2: 'Simple well-being techniques',
-    happiness_b3: 'Ancient Indian wisdom',
-    leadership_title: 'Leadership Skills',
-    leadership_desc: 'A beginner course for professionals from diverse backgrounds. Strengthen your capacity to lead across boundaries, with or without authority, and manage the inevitable stresses and challenges of leading a team. Drawing from business, philosophy, sports, and psychology.',
-    leadership_b1: 'Lead across boundaries',
-    leadership_b2: 'Lead with or without authority',
-    leadership_b3: 'Manage leadership stresses',
     research_heading: 'Research Methods',
     research_subtitle: 'Comprehensive lecture series on advanced research methodologies for scholars and practitioners',
     multilevel_title: 'Multilevel Modeling',
@@ -53,7 +43,6 @@ export default function Courses() {
   });
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
-  const [homeOverrides, setHomeOverrides] = useState({});
   const [showAddResearch, setShowAddResearch] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
 
@@ -73,8 +62,6 @@ export default function Courses() {
   };
 
   // Fetch published courses from Firestore
-  // Note: Admins might want to see all, but for consistency we fetch published ones.
-  // To fetch all for admin, you could conditionally build the query array.
   const { data: courses, loading: coursesLoading } = useFirestoreCollection('courses', [
     where('published', '==', true)
   ], true);
@@ -94,11 +81,10 @@ export default function Courses() {
   // Admin functions for managing dynamic courses
   const addCourse = async (newCourse) => {
     try {
-      // set order to end of list
       const maxOrder = courses && courses.length ? Math.max(...courses.map(c => (c.order ?? 0))) : 0;
       await addDoc(collection(db, 'courses'), {
         ...newCourse,
-        published: true, // Auto-publish for simplicity, or add a toggle in the form
+        published: true,
         createdAt: new Date(),
         order: maxOrder + 1
       });
@@ -117,7 +103,6 @@ export default function Courses() {
     if (missing.length === 0) return;
     (async () => {
       try {
-        // assign orders based on current sorted position
         const sorted = [...courses].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         for (let i = 0; i < sorted.length; i++) {
           const c = sorted[i];
@@ -195,17 +180,6 @@ export default function Courses() {
     } catch (error) {
       console.error('Error deleting course:', error);
       alert('Failed to delete course');
-    }
-  };
-
-  const toggleShowOnHome = async (course) => {
-    const newVal = !(homeOverrides[course.id] ?? course.showOnHome);
-    setHomeOverrides(prev => ({ ...prev, [course.id]: newVal }));
-    try {
-      await updateDoc(doc(db, 'courses', course.id), { showOnHome: newVal });
-    } catch (error) {
-      setHomeOverrides(prev => ({ ...prev, [course.id]: !newVal }));
-      alert('Failed to update');
     }
   };
 
@@ -406,60 +380,7 @@ export default function Courses() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Featured Coursera Courses */}
-              <CourseCard
-                icon={FiBook}
-                title={<EditableText collection="content" docId="courses" field="happiness_title" defaultValue={pageData?.happiness_title || 'HAPPINESS: Science, Practice and Ancient Indian Wisdom'} />}
-                description={<EditableText collection="content" docId="courses" field="happiness_desc" defaultValue={pageData?.happiness_desc || 'Explore how to become a happy being—successful and at peace. This unique course combines evidence from science, practical well-being techniques, and lessons from Indian wisdom storehouses: the Upanishads, the Gita, and the Yoga Sutras.'} multiline />}
-                link="https://www.coursera.org/learn/happiness"
-                linkText="Enroll on Coursera"
-                badge="COURSERA"
-                borderColor="border-[#f97316]"
-                alt={false}
-              >
-                <div className="mb-6 space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
-                    <FiBook className="w-4 h-4 text-[#f97316]" />
-                    <EditableText collection="content" docId="courses" field="happiness_b1" defaultValue={pageData?.happiness_b1 || 'Evidence from science'} />
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
-                    <FiBook className="w-4 h-4 text-[#f97316]" />
-                    <EditableText collection="content" docId="courses" field="happiness_b2" defaultValue={pageData?.happiness_b2 || 'Simple well-being techniques'} />
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
-                    <FiBook className="w-4 h-4 text-[#f97316]" />
-                    <EditableText collection="content" docId="courses" field="happiness_b3" defaultValue={pageData?.happiness_b3 || 'Ancient Indian wisdom'} />
-                  </div>
-                </div>
-              </CourseCard>
-
-              <CourseCard
-                icon={FiUsers}
-                title={<EditableText collection="content" docId="courses" field="leadership_title" defaultValue={pageData?.leadership_title || 'Leadership Skills'} />}
-                description={<EditableText collection="content" docId="courses" field="leadership_desc" defaultValue={pageData?.leadership_desc || 'A beginner course for professionals from diverse backgrounds. Strengthen your capacity to lead across boundaries, with or without authority, and manage the inevitable stresses and challenges of leading a team. Drawing from business, philosophy, sports, and psychology.'} multiline />}
-                link="https://www.coursera.org/learn/leadershipskills"
-                linkText="Enroll on Coursera"
-                badge="COURSERA"
-                borderColor="border-[#004B8D]"
-                alt={true}
-              >
-                <div className="mb-6 space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
-                    <FiUsers className="w-4 h-4 text-[#004B8D]" />
-                    <EditableText collection="content" docId="courses" field="leadership_b1" defaultValue={pageData?.leadership_b1 || 'Lead across boundaries'} />
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
-                    <FiUsers className="w-4 h-4 text-[#004B8D]" />
-                    <EditableText collection="content" docId="courses" field="leadership_b2" defaultValue={pageData?.leadership_b2 || 'Lead with or without authority'} />
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-['Inter'] text-gray-700">
-                    <FiUsers className="w-4 h-4 text-[#004B8D]" />
-                    <EditableText collection="content" docId="courses" field="leadership_b3" defaultValue={pageData?.leadership_b3 || 'Manage leadership stresses'} />
-                  </div>
-                </div>
-              </CourseCard>
-
-              {/* Dynamic Firestore courses */}
+              {/* All courses now come from Firestore - fully editable */}
               {sortedCourses && sortedCourses.map((course, index) => {
                   const videoId = course.youtubeUrl ? extractVideoId(course.youtubeUrl) : null;
                   const thumbnailUrl = course.thumbnail || (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null);
@@ -548,23 +469,34 @@ export default function Courses() {
                       </CourseCard>
 
                       {isAdmin && (
-                        <div className="absolute top-3 right-3 flex flex-col gap-2">
+                        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
+                          {reorderMode && (
+                            <>
+                              <button
+                                onClick={() => moveCourse(course.id, 'up')}
+                                className="p-2 bg-white border rounded-md shadow-sm hover:bg-gray-50"
+                                title="Move up"
+                              >
+                                <FiChevronUp />
+                              </button>
+                              <button
+                                onClick={() => moveCourse(course.id, 'down')}
+                                className="p-2 bg-white border rounded-md shadow-sm hover:bg-gray-50"
+                                title="Move down"
+                              >
+                                <FiChevronDown />
+                              </button>
+                            </>
+                          )}
                           <button
-                            onClick={() => moveCourse(course.id, 'up')}
-                            className="p-2 bg-white border rounded-md shadow-sm hover:bg-gray-50"
-                            title="Move up"
+                            onClick={() => setEditingCourse(course)}
+                            className="p-2 bg-blue-50 text-blue-600 border rounded-md shadow-sm hover:bg-blue-100"
+                            title="Edit"
                           >
-                            <FiChevronUp />
+                            <FiEdit2 />
                           </button>
                           <button
-                            onClick={() => moveCourse(course.id, 'down')}
-                            className="p-2 bg-white border rounded-md shadow-sm hover:bg-gray-50"
-                            title="Move down"
-                          >
-                            <FiChevronDown />
-                          </button>
-                          <button
-                            onClick={() => { if (confirm('Delete this course?')) deleteCourse(course.id); }}
+                            onClick={() => deleteCourse(course.id)}
                             className="p-2 bg-red-50 text-red-600 border rounded-md shadow-sm hover:bg-red-100"
                             title="Delete"
                           >
