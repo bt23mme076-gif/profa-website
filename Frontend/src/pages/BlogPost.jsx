@@ -19,18 +19,18 @@ if (typeof document !== 'undefined' && !document.getElementById('bp-styles')) {
   style.id = 'bp-styles';
   style.textContent = `
     .bp-root { background:#ffffff; min-height:100vh; }
-    .bp-header { border-bottom:2px solid black; }
+    .bp-header { border-bottom: none; }
     .bp-header-inner { max-width:780px; margin:0 auto; padding:56px 24px 40px; }
     .bp-back { display:inline-flex; align-items:center; gap:6px; font-family:'Inter',sans-serif; font-size:.8rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6b7280; text-decoration:none; margin-bottom:28px; transition:color .2s; }
-    .bp-back:hover { color:#1a1a1a; }
+    .bp-back:hover { color:#ffffff; }
     .bp-meta { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:20px; }
     .bp-cat { font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#f97316; background:#fff7ed; padding:3px 10px; border-radius:2px; border:1px solid rgba(249,115,22,.25); }
     .bp-date { display:inline-flex; align-items:center; gap:5px; font-family:'Inter',sans-serif; font-size:.75rem; color:#9ca3af; }
     .bp-title { font-family:'Playfair Display',Georgia,serif; font-size:clamp(2rem,5vw,3.4rem); font-weight:700; color:#1a1a1a; line-height:1.15; margin:0 0 20px; letter-spacing:-.02em; }
     .bp-excerpt { font-family:'Playfair Display',Georgia,serif; font-style:italic; font-size:1.1rem; color:#6b7280; line-height:1.75; border-left:3px solid #f97316; padding-left:18px; margin:0; }
 
-    .bp-body { max-width:780px; margin:0 auto; padding:0 24px 80px; }
-    .bp-hero-img { width:100%; max-height:480px; object-fit:cover; border-radius:0; margin:0 0 48px; display:block; }
+    .bp-hero-section { border-bottom: none; }
+    .bp-body { max-width:780px; margin:0 auto; padding:40px 24px 80px; }
 
     /* ── Rich HTML content styles ── */
     .bp-content {
@@ -312,6 +312,11 @@ export default function BlogPost() {
 
   const comments = [...snapshotComments, ...localPendingComments];
 
+  // Scroll to top when page opens
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [slug]);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [comment, setComment] = useState('');
@@ -472,35 +477,68 @@ export default function BlogPost() {
 
   return (
     <div className="bp-root">
-      {/* ── Header ── */}
-      <div className="bp-header">
-        <div className="bp-header-inner">
-          <Link to="/blog" className="bp-back"><FiArrowLeft size={13} /> Back to Blog</Link>
-          <div className="bp-meta">
-            {blog.category && <span className="bp-cat"><FiTag size={11} style={{ display: 'inline', marginRight: 4 }} />{blog.category}</span>}
-            {blog.date && <span className="bp-date"><FiCalendar size={11} />{formatDate(blog.date)}</span>}
+      {/* ── Hero — cover image with title overlay ── */}
+      <div className="bp-hero-section" style={{
+        position: 'relative',
+        width: '100%',
+        minHeight: blog.imageUrl ? 420 : 'auto',
+        background: blog.imageUrl ? 'transparent' : '#0f2745',
+        overflow: 'hidden',
+      }}>
+        {blog.imageUrl && (
+          <motion.img
+            src={blog.imageUrl}
+            alt={blog.title}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            onError={(e) => { e.target.style.display = 'none'; }}
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+            }}
+          />
+        )}
+        {/* Dark gradient overlay */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: blog.imageUrl
+            ? 'linear-gradient(to bottom, rgba(5,13,25,0.18) 0%, rgba(5,13,25,0.72) 60%, rgba(5,13,25,0.92) 100%)'
+            : 'linear-gradient(135deg, #0f2745 0%, #0c1d35 100%)',
+        }} />
+
+        {/* Content over image */}
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: 780, margin: '0 auto', padding: '48px 24px 56px' }}>
+          <Link to="/blog" className="bp-back" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 28, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <FiArrowLeft size={13} /> Back to Blog
+          </Link>
+          <div className="bp-meta" style={{ marginBottom: 20 }}>
+            {blog.category && (
+              <span className="bp-cat" style={{ color: '#f97316', background: 'rgba(255,247,237,0.15)', border: '1px solid rgba(249,115,22,0.4)', backdropFilter: 'blur(4px)' }}>
+                <FiTag size={11} style={{ display: 'inline', marginRight: 4 }} />{blog.category}
+              </span>
+            )}
+            {blog.date && (
+              <span className="bp-date" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                <FiCalendar size={11} />{formatDate(blog.date)}
+              </span>
+            )}
           </div>
-          <h1 className="bp-title">{blog.title}</h1>
+          <h1 className="bp-title" style={{ color: '#ffffff', margin: '0 0 20px', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
+            {blog.title}
+          </h1>
           {blog.excerpt && (
-            // excerpt may be plain text (old posts) or have HTML — strip tags for the header pull quote
-            <p className="bp-excerpt">{blog.excerpt.replace(/<[^>]*>/g, '')}</p>
+            <p className="bp-excerpt" style={{ color: 'rgba(255,255,255,0.82)', borderLeftColor: '#f97316' }}>
+              {blog.excerpt.replace(/<[^>]*>/g, '')}
+            </p>
           )}
         </div>
       </div>
 
       {/* ── Body ── */}
       <div className="bp-body">
-        {blog.imageUrl && (
-          <motion.img
-            src={blog.imageUrl}
-            alt={blog.title}
-            className="bp-hero-img"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-        )}
 
         {/* ── Main content — renders rich HTML from editor (images, headings, tables, etc.) ── */}
         <motion.div
